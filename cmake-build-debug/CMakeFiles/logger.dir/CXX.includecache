@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/Chris/Desktop/Chile/utils/Logger.cpp
+cstdarg
+-
+cstdio
+-
+cstdlib
+-
+Logger.h
+/Users/Chris/Desktop/Chile/utils/Logger.h
+
+/Users/Chris/Desktop/Chile/utils/Logger.h
+
