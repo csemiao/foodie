@@ -1,4 +1,0 @@
-/Users/Chris/Desktop/Chile/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/Chris/Desktop/Chile/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/Chris/Desktop/Chile/cmake-build-debug/CMakeFiles/Foodie.dir
-/Users/Chris/Desktop/Chile/cmake-build-debug/CMakeFiles/logger.dir
