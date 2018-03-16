@@ -1,0 +1,3 @@
+/Users/Chris/Desktop/Chile 2/CMakeFiles/rebuild_cache.dir
+/Users/Chris/Desktop/Chile 2/CMakeFiles/edit_cache.dir
+/Users/Chris/Desktop/Chile 2/CMakeFiles/Chile_2.dir

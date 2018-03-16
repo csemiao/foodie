@@ -13,19 +13,19 @@ public:
     {
         // lexical sugar that's there just for natural language style
         DEFAULT = -1,
-        UNKNOWN,
+        UNKNOWN,                // applies to string values
 
         // Declaration types
         FUNCTION_DECLARATION,
-        VARIABLE_ASSIGNMENT,
-        VARIABLE_ASSIGNMENT_START,
+        TRANSFER_VARIABLE,
+        INGREDIENTS_START,
         PROCEDURE_START,
+        TRANSFER_VALUE,
 
-        // Primitive type
+        // Numerical and Logical types
         INTEGER,
         FLOAT,
         BOOLEAN,
-        STRING,
 
         // Primitive Mathematical Operation
         ADD_SELF,
@@ -49,15 +49,21 @@ public:
 
         // Endings
         END_OF_STATEMENT,
-        END_OF_FUNCTION,
+        RETURN,
         END_OF_FILE,
+
+        // Functions
+        PRINT
     };
 
 public:
+    friend bool operator==(const Token& left, const Token& right);
+
     Token(TokenType type, std::string token);
     Token();
 
-    TokenType type();
+    TokenType type() const;
+    std::string token() const;
 
 private:
     TokenType       m_tokenType;
