@@ -1,7 +1,3 @@
-//
-// Created by Chris on 2018-01-31.
-//
-
 #pragma once
 
 #include <vector>
@@ -25,6 +21,7 @@ private:
 
     void    reset(std::shared_ptr<std::string> input);
     bool    scanForNextToken(Token& tokenOut);
+    bool    isTwoKeyWordToken(Token& token, Token& tokenLast);
     bool    isFinished();
     char    popSource();
     char    peekSource();

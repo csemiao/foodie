@@ -3,6 +3,7 @@
 
 CMakeFiles/Foodie.dir/Expression.cpp.o: ../Expression.cpp
 CMakeFiles/Foodie.dir/Expression.cpp.o: ../Expression.h
+CMakeFiles/Foodie.dir/Expression.cpp.o: ../Token.h
 
 CMakeFiles/Foodie.dir/Foodie.cpp.o: ../Expression.h
 CMakeFiles/Foodie.dir/Foodie.cpp.o: ../Foodie.cpp

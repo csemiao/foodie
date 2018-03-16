@@ -8,6 +8,7 @@ int main(int argc, char** argv)
     if (argc == 1)
     {
         // one arg
+        // TODO: support a shell
     }
     else if (argc == 2)
     {

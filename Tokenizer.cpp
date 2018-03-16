@@ -1,12 +1,7 @@
-//
-// Created by Chris on 2018-01-31.
-//
-
 #include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <cctype>
 #include <map>
 
 #include "Tokenizer.h"
@@ -19,16 +14,30 @@ using namespace std;
 
 namespace
 {
-    std::map<std::string, Token::TokenType> keywords =
-        {
-                {"ingredients", Token::VARIABLE_ASSIGNMENT_START},
-                {"preparation", Token::PROCEDURE_START},
-                {"combine", Token::ADD_SELF},
-                {"mix", Token::MULTIPLY_SELF},
-                {"fold", Token::NEGATION},
-                {"stir", Token::RECIPROCAL},
-                {"serve", Token::END_OF_FUNCTION}
-        };
+    struct TwoWordKeyWord
+    {
+        string secondWord;
+        Token::TokenType tokenType;
+    };
+
+    map<string, Token::TokenType> keywords =
+            {
+                    {"ingredients", Token::INGREDIENTS_START},
+                    {"preparation", Token::PROCEDURE_START},
+                    {"to", Token::TRANSFER_VALUE},
+                    {"add", Token::ADD_SELF},
+                    {"mix", Token::MULTIPLY_SELF},
+                    {"fold", Token::NEGATION},
+                    {"stir", Token::RECIPROCAL},
+                    {"instagram", Token::PRINT},
+                    {"serve", Token::RETURN},
+            };
+
+    map<string, TwoWordKeyWord> keywordsTwo =
+            {
+                    {"recipe", {"for", Token::FUNCTION_DECLARATION}},
+                    {"to", {"make", Token::TRANSFER_VARIABLE}},
+            };
 
     // If a token is available from the keyword, create it and return true.  otherwise return false;
 
@@ -49,10 +58,10 @@ namespace
 }
 
 Tokenizer::Tokenizer() :
-    m_line(1),
-    m_start(0),
-    m_current(0),
-    m_sourceLength(0)
+        m_line(1),
+        m_start(0),
+        m_current(0),
+        m_sourceLength(0)
 {
 }
 
@@ -75,9 +84,17 @@ vector<Token> Tokenizer::tokenize(shared_ptr<string> input)
     while (!isFinished())
     {
         Token token;
-        if(scanForNextToken(token))
+        if (scanForNextToken(token))
         {
-            tokens.push_back(token);
+            if (!tokens.empty())
+            {
+                if (!isTwoKeyWordToken(token, tokens.back()))
+                tokens.push_back(token);
+            }
+            else
+            {
+                tokens.push_back(token);
+            }
         }
         else
         {
@@ -88,10 +105,30 @@ vector<Token> Tokenizer::tokenize(shared_ptr<string> input)
     Token endToken(Token::END_OF_FILE, "END_OF_FILE");
     tokens.push_back(endToken);
 
-
     return tokens;
 }
 
+bool Tokenizer::isTwoKeyWordToken(Token& token, Token& tokenLast)
+{
+    auto idx = keywordsTwo.find(tokenLast.token());
+
+    if (idx != keywordsTwo.end()) {
+        TwoWordKeyWord wordTwo = idx->second;
+
+        if (token.token() == wordTwo.secondWord)
+        {
+            stringstream stream;
+            stream << tokenLast.token();
+            stream << " ";
+            stream << token.token();
+            tokenLast = Token(wordTwo.tokenType, stream.str());
+
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool Tokenizer::isFinished()
 {
@@ -111,11 +148,13 @@ bool Tokenizer::scanForNextToken(Token& tokenOut)
                 return true;
             }
             default: {
-                if (isdigit(c)) {
+                if (isdigit(c))
+                {
                     tokenOut = findNumber();
                     return true;
                 }
-                else if (isalpha(c)) {
+                else if (isalpha(c))
+                {
                     tokenOut = findWord();
                     return true;
                 }
@@ -128,8 +167,7 @@ bool Tokenizer::scanForNextToken(Token& tokenOut)
             }
         }
     }
-
-    // TODO: What should this return if it finds nothing????
+    return false;
 }
 
 char Tokenizer::popSource()
@@ -162,10 +200,14 @@ Token Tokenizer::findNumber()
     while (peekSource() && peekSource() != ' ')
     {
         char c = popSource();
+        if (c == ',')
+        {
+            break;
+        }
         if (isalpha(c))
         {
             // TODO maybe this could be treated as as word instead?
-            ParseError("Invalid number %s", "the substring");     // TODO substring
+            ParseError("Invalid number %s", "invalid character");     // TODO fix substring
         }
         if (c == '.')
         {
@@ -175,7 +217,7 @@ Token Tokenizer::findNumber()
             }
             else
             {
-                ParseError("Invalid number %s", "a substring");   // TODO substring
+                ParseError("Invalid number %s", "invalid character");   // TODO fix substring
             }
         }
     }

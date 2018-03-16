@@ -11,6 +11,8 @@ Expression.h
 /Users/Chris/Desktop/Chile/Expression.h
 
 /Users/Chris/Desktop/Chile/Expression.h
+Token.h
+/Users/Chris/Desktop/Chile/Token.h
 
 /Users/Chris/Desktop/Chile/Foodie.cpp
 fstream
@@ -68,8 +70,6 @@ string
 iostream
 -
 sstream
--
-cctype
 -
 map
 -

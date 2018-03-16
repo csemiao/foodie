@@ -1,0 +1,150 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/Chris/Desktop/Chile 2/Expression.cpp
+Expression.h
+/Users/Chris/Desktop/Chile 2/Expression.h
+
+/Users/Chris/Desktop/Chile 2/Expression.h
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+string
+-
+vector
+-
+boost/variant/variant.hpp
+-
+
+/Users/Chris/Desktop/Chile 2/Foodie.cpp
+fstream
+-
+sstream
+-
+vector
+-
+Foodie.h
+/Users/Chris/Desktop/Chile 2/Foodie.h
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+Tokenizer.h
+/Users/Chris/Desktop/Chile 2/Tokenizer.h
+Parser.h
+/Users/Chris/Desktop/Chile 2/Parser.h
+Interpreter.h
+/Users/Chris/Desktop/Chile 2/Interpreter.h
+
+/Users/Chris/Desktop/Chile 2/Foodie.h
+utils/Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+
+/Users/Chris/Desktop/Chile 2/Interpreter.cpp
+Interpreter.h
+/Users/Chris/Desktop/Chile 2/Interpreter.h
+utils/Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+boost/variant/get.hpp
+-
+
+/Users/Chris/Desktop/Chile 2/Interpreter.h
+Expression.h
+/Users/Chris/Desktop/Chile 2/Expression.h
+Statement.h
+/Users/Chris/Desktop/Chile 2/Statement.h
+boost/variant/variant.hpp
+-
+map
+-
+
+/Users/Chris/Desktop/Chile 2/Parser.cpp
+utils/Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+vector
+-
+Parser.h
+/Users/Chris/Desktop/Chile 2/Parser.h
+
+/Users/Chris/Desktop/Chile 2/Parser.h
+vector
+-
+memory
+-
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+Expression.h
+/Users/Chris/Desktop/Chile 2/Expression.h
+Statement.h
+/Users/Chris/Desktop/Chile 2/Statement.h
+
+/Users/Chris/Desktop/Chile 2/Statement.cpp
+Statement.h
+/Users/Chris/Desktop/Chile 2/Statement.h
+utils/logger.h
+/Users/Chris/Desktop/Chile 2/utils/logger.h
+
+/Users/Chris/Desktop/Chile 2/Statement.h
+Expression.h
+/Users/Chris/Desktop/Chile 2/Expression.h
+
+/Users/Chris/Desktop/Chile 2/Token.cpp
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+utils/Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+
+/Users/Chris/Desktop/Chile 2/Token.h
+string
+-
+
+/Users/Chris/Desktop/Chile 2/Tokenizer.cpp
+vector
+-
+string
+-
+iostream
+-
+sstream
+-
+map
+-
+Tokenizer.h
+/Users/Chris/Desktop/Chile 2/Tokenizer.h
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+utils/Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+
+/Users/Chris/Desktop/Chile 2/Tokenizer.h
+vector
+-
+memory
+-
+string
+-
+Token.h
+/Users/Chris/Desktop/Chile 2/Token.h
+
+/Users/Chris/Desktop/Chile 2/main.cpp
+iostream
+-
+Foodie.h
+/Users/Chris/Desktop/Chile 2/Foodie.h
+
+/Users/Chris/Desktop/Chile 2/utils/Logger.cpp
+cstdarg
+-
+cstdio
+-
+cstdlib
+-
+Logger.h
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+
+/Users/Chris/Desktop/Chile 2/utils/Logger.h
+
+/Users/Chris/Desktop/Chile 2/utils/logger.h
+
