@@ -21,6 +21,7 @@ public:
         INGREDIENTS_START,
         PROCEDURE_START,
         TRANSFER_VALUE,
+        BRAND_ID,
 
         // Numerical and Logical types
         INTEGER,

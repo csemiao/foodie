@@ -9,6 +9,9 @@
 
 namespace
 {
+    bool isIngredient = false;
+    bool isProcedure = true;
+
     size_t findFirstTokenOfType(std::vector<Token>& tokens, Token::TokenType type)
     {
         size_t index = 0;
@@ -59,48 +62,96 @@ std::shared_ptr<Statement> Parser::nextStatement()
 
     while (popToken(nextToken))
     {
-        tokens.push_back(nextToken);
-
-        if (nextToken.type() == Token::END_OF_STATEMENT)
+        if (nextToken.type() == Token::INGREDIENTS_START)
+        {
+            isIngredient = true;
+            isProcedure = false;
+            continue;
+        }
+        else if (nextToken.type() == Token::PROCEDURE_START)
+        {
+            isProcedure = true;
+            isIngredient = false;
+            continue;
+        }
+        else if (nextToken.type() == Token::END_OF_STATEMENT)
         {
             return makeStatement(tokens);
         }
+
+        tokens.push_back(nextToken);
     }
 }
 
 std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
 {
-    switch (tokens.at(0).type())
+    if (isIngredient)
     {
-        case Token::ADD_SELF:
-        case Token::MULTIPLY_SELF:
+        return makeAssignment(tokens);
+    }
+    else if (isProcedure)
+    {
+        switch (tokens.at(0).type())
         {
-            return makeBinary(tokens);
-        }
-        case Token::NEGATION:
-        case Token::RECIPROCAL:
-        {
-            return makeUnary(tokens);
-        }
-        case Token::PRINT:
-        {
-            return makePrint(tokens);
-        }
-        default:
-        {
-            dbPrintf("Unknown operation: %s", tokens.at(0).token().c_str());
+            case Token::ADD_SELF:
+            case Token::MULTIPLY_SELF:
+            {
+                return makeBinary(tokens);
+            }
+            case Token::NEGATION:
+            case Token::RECIPROCAL:
+            {
+                return makeUnary(tokens);
+            }
+            case Token::PRINT:
+            {
+                return makePrint(tokens);
+            }
         }
     }
+}
+
+std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& tokens)
+{
+
+    Token value = tokens.at(0);
+    std::shared_ptr<Literal> p_value = std::make_shared<Literal>(tokens.at(0));
+
+    switch (tokens.at(0).type())
+    {
+        case Token::INTEGER:
+        case Token::FLOAT:
+        {
+            // TODO: check length = 3 (includes EOS)
+            std::shared_ptr<Literal> p_name = std::make_shared<Literal>(tokens.at(1));
+            return make_shared<AssignmentStatement>(p_name, p_value);
+        }
+        case Token::UNKNOWN:
+        {
+            // TODO: check length = 4 (includes EOS)
+            if (tokens.at(1).type() == Token::BRAND_ID)
+            {
+                std::shared_ptr<Literal> p_name = std::make_shared<Literal>(tokens.at(2));
+                return make_shared<AssignmentStatement>(p_name, p_value);
+            }
+            else
+            {
+                // TODO:  We need to know what brand type
+            }
+        }
+    }
+    //the first token is the value
+    //the second token is the name, except if it's brand, in which case make it
 }
 
 std::shared_ptr<PrintStatement> Parser::makePrint(std::vector<Token>& tokens)
 {
     //dbPrintf("Trying to make print statement using tokens %s", "");
-    if (tokens.size() != 3)
+    if (tokens.size() != 2)
     {
         stringstream ss;
         ss << "Invalid number of instagram photos: ";
-        ss << tokens.size() - 2;
+        ss << tokens.size() - 1;
         ss << ", valid number is 1";
         ss << std::endl;
         parseError(tokens, ss.str());
@@ -113,11 +164,11 @@ std::shared_ptr<PrintStatement> Parser::makePrint(std::vector<Token>& tokens)
 std::shared_ptr<ExpressionStatement> Parser::makeUnary(std::vector<Token>& tokens)
 {
     //dbPrintf("Trying to make unary statement using tokens %s", "");
-    if (tokens.size() != 3)
+    if (tokens.size() != 2)
     {
         stringstream ss;
         ss << "Invalid number of parameters to operation";
-        ss << tokens.size() - 2;
+        ss << tokens.size() - 1;
         ss << ", valid number is 1";
         ss << std::endl;
         parseError(tokens, ss.str());

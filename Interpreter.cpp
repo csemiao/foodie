@@ -5,6 +5,7 @@
 #include "Interpreter.h"
 #include "utils/Logger.h"
 #include <boost/variant/get.hpp>
+#include <string>
 
 namespace
 {
@@ -121,24 +122,7 @@ variant Interpreter::doNegation(Literal& target)
     variant tgt = lookup(target.m_token.token());
     T tgtVal = boost::get<T>(tgt);
 
-    switch(tgt.which())
-    {
-        case 0:
-        case 1:
-        {
-            m_variables[target.m_token.token()] = (-tgtVal);
-            break;
-        }
-        case 2:
-        {
-            fatalPrintf("operation neg not supported for %s", target.m_token.token().c_str());
-            break;
-        }
-        default:
-        {
-            fatalPrintf("operation neg variant case not accounted for %d", tgt.which());
-        }
-    }
+    m_variables[target.m_token.token()] = (-tgtVal);
 
     return lookup(target.m_token.token());
 }
@@ -190,7 +174,7 @@ void Interpreter::doPrint(variant& result, std::string name)
         }
         case 2:
         {
-            printf("Insta that %s: %s, it looks %s\n", name.c_str(), boost::get<std::string>(result).c_str(), lineEnding.c_str());
+            printf("Insta that %s: \"%s\", it looks %s\n", name.c_str(), boost::get<std::string>(result).c_str(), lineEnding.c_str());
             break;
         }
         default:
@@ -200,12 +184,43 @@ void Interpreter::doPrint(variant& result, std::string name)
     }
 }
 
+void Interpreter::doAssignment(std::string& name, Literal& expression)
+{
+    variant value;
+
+    switch (expression.type())
+    {
+        case Token::INTEGER:
+        {
+            value = stoi(expression.m_token.token());
+            break;
+        }
+        case Token::FLOAT:
+        {
+            value = stof(expression.m_token.token());
+            break;
+        }
+        case Token::UNKNOWN:
+        {
+            value = expression.m_token.token();
+            break;
+        }
+        default:
+        {
+            fatalPrintf("Unknown primitive type being assigned %s", expression.m_token.token().c_str());
+        }
+    }
+
+
+    m_variables[name] = value;
+}
+
 Interpreter::Interpreter() :
         StatementVisitor()
 {
-    m_variables["eggs"] = variant(1.0f);           // TODO: debugging values
-    m_variables["cinammon"] = variant(2.0f);
-    m_variables["toast"] = variant(3.0f);
+    //m_variables["eggs"] = variant(1.0f);           // TODO: debugging values
+    //m_variables["cinammon"] = variant(2.0f);
+    //m_variables["toast"] = variant(3.0f);
 }
 
 void Interpreter::interpret(std::vector<std::shared_ptr<Statement>>& statements)
@@ -228,11 +243,13 @@ variant Interpreter::lookup(std::string key)
     }
 }
 
-// Statement Visitor
+/**
+ * Statement Visitor
+ */
+
 
 variant Interpreter::visitExpressionStatement(ExpressionStatement& statement)
 {
-    // dbPrintf("I am visiting the ExpressionStatement now %s" , "");
     return evaluate(statement.mp_expression);
 }
 
@@ -243,10 +260,30 @@ void Interpreter::visitPrintStatement(PrintStatement& statement)
     doPrint(result, name);
 }
 
+void Interpreter::visitAssignmentStatement(AssignmentStatement& statement)
+{
+    std::string name = statement.mp_name.get()->m_token.token();
 
+    if (m_variables.count(name) == 0)
+    {
+        doAssignment(name, *statement.mp_expression);
+    }
+    else
+    {
+        // If an ingredient is already listed, then it's a mistake for it to be listed again
+        fatalPrintf("%s is already in the ingredient list", name.c_str());
+    }
+}
+
+// TODO:  this one can be removed???
 variant Interpreter::evaluate(std::shared_ptr<Expression> expression)
 {
     return expression->evaluate(*this);
+}
+
+variant Interpreter::evaluate(Expression& expression)
+{
+    return expression.evaluate(*this);
 }
 
 
@@ -282,10 +319,11 @@ variant Interpreter::visitBinary(Binary& binary)
 
 variant Interpreter::visitLiteral(Literal& literal)
 {
-    //dbPrintf("I am visiting a literal expression %s", "");
     variant result = lookup(literal.m_token.token());
     return result;
 }
+
+
 
 variant Interpreter::visitUnary(Unary& unary)
 {
@@ -295,11 +333,13 @@ variant Interpreter::visitUnary(Unary& unary)
     {
         case Token::NEGATION:
         {
-            return Interpreter::doNegation<float>(unary.m_source);                              // TODO: show why this sucks
+            NegationVisitor visitor(unary, *this);
+            return boost::apply_visitor(visitor, lookup(unary.m_source.m_token.token()));
         }
         case Token::RECIPROCAL:
         {
-            return Interpreter::doReciprocal<float>(unary.m_source);                            // TODO:  show why this sucks
+            ReciprocalVisitor recipVisitor(unary, *this);
+            return boost::apply_visitor(recipVisitor, lookup(unary.m_source.m_token.token()));
         }
         default:
         {

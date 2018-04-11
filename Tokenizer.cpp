@@ -24,6 +24,7 @@ namespace
             {
                     {"ingredients", Token::INGREDIENTS_START},
                     {"preparation", Token::PROCEDURE_START},
+                    {"procedure", Token::PROCEDURE_START},
                     {"to", Token::TRANSFER_VALUE},
                     {"add", Token::ADD_SELF},
                     {"mix", Token::MULTIPLY_SELF},
@@ -31,6 +32,7 @@ namespace
                     {"stir", Token::RECIPROCAL},
                     {"instagram", Token::PRINT},
                     {"serve", Token::RETURN},
+                    {"brand", Token::BRAND_ID},
             };
 
     map<string, TwoWordKeyWord> keywordsTwo =

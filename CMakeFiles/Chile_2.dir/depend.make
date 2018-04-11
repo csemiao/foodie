@@ -14,6 +14,7 @@ CMakeFiles/Chile_2.dir/Foodie.cpp.o: Statement.h
 CMakeFiles/Chile_2.dir/Foodie.cpp.o: Token.h
 CMakeFiles/Chile_2.dir/Foodie.cpp.o: Tokenizer.h
 CMakeFiles/Chile_2.dir/Foodie.cpp.o: utils/Logger.h
+CMakeFiles/Chile_2.dir/Foodie.cpp.o: utils/logger.h
 
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o: Expression.h
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o: Interpreter.cpp
@@ -21,6 +22,7 @@ CMakeFiles/Chile_2.dir/Interpreter.cpp.o: Interpreter.h
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o: Statement.h
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o: Token.h
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o: utils/Logger.h
+CMakeFiles/Chile_2.dir/Interpreter.cpp.o: utils/logger.h
 
 CMakeFiles/Chile_2.dir/Parser.cpp.o: Expression.h
 CMakeFiles/Chile_2.dir/Parser.cpp.o: Parser.cpp

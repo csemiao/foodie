@@ -15,6 +15,7 @@ CMakeFiles/Chile_2.dir/Foodie.cpp.o
  /Users/Chris/Desktop/Chile 2/Token.h
  /Users/Chris/Desktop/Chile 2/Tokenizer.h
  /Users/Chris/Desktop/Chile 2/utils/Logger.h
+ /Users/Chris/Desktop/Chile 2/utils/logger.h
 CMakeFiles/Chile_2.dir/Interpreter.cpp.o
  /Users/Chris/Desktop/Chile 2/Expression.h
  /Users/Chris/Desktop/Chile 2/Interpreter.cpp
@@ -22,6 +23,7 @@ CMakeFiles/Chile_2.dir/Interpreter.cpp.o
  /Users/Chris/Desktop/Chile 2/Statement.h
  /Users/Chris/Desktop/Chile 2/Token.h
  /Users/Chris/Desktop/Chile 2/utils/Logger.h
+ /Users/Chris/Desktop/Chile 2/utils/logger.h
 CMakeFiles/Chile_2.dir/Parser.cpp.o
  /Users/Chris/Desktop/Chile 2/Expression.h
  /Users/Chris/Desktop/Chile 2/Parser.cpp

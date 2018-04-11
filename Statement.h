@@ -8,6 +8,7 @@
 // Forward Declares
 class ExpressionStatement;
 class PrintStatement;
+class AssignmentStatement;
 
 
 // Visitor
@@ -16,6 +17,7 @@ class StatementVisitor
 public:
     virtual variant visitExpressionStatement(ExpressionStatement& statement) = 0;
     virtual void visitPrintStatement(PrintStatement& statement) = 0;
+    virtual void visitAssignmentStatement(AssignmentStatement& statement) = 0;
 };
 
 
@@ -43,5 +45,16 @@ public:
     PrintStatement(std::shared_ptr<Literal> literal);
     void accept(StatementVisitor& visitor);
 
+    std::shared_ptr<Literal> mp_expression;
+};
+
+// AssignmentStatement
+class AssignmentStatement: public Statement
+{
+public:
+    AssignmentStatement(std::shared_ptr<Literal> name, std::shared_ptr<Literal> expression);
+
+    void accept(StatementVisitor& visitor);
+    std::shared_ptr<Literal> mp_name;
     std::shared_ptr<Literal> mp_expression;
 };

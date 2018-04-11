@@ -35,3 +35,18 @@ void PrintStatement::accept(StatementVisitor& visitor)
 {
     visitor.visitPrintStatement(*this);
 }
+
+/**
+ * AssignmentStatement
+ */
+
+AssignmentStatement::AssignmentStatement(std::shared_ptr<Literal> name, std::shared_ptr<Literal> expression) :
+    Statement(),
+    mp_name(name),
+    mp_expression(expression)
+{};
+
+void AssignmentStatement::accept(StatementVisitor& visitor)
+{
+    visitor.visitAssignmentStatement(*this);
+}
