@@ -10,8 +10,6 @@
 #include <stack>
 #include <memory>
 
-#define NONE ""
-
 namespace
 {
     std::vector<std::string> lineEndings {"fantastic", "yummy", "scrumptious", "delicious", "like crap",
@@ -36,7 +34,7 @@ namespace
         return isAllSameTypeVec(literals) && target.type() == literals.at(0).type();
     }
 
-    std::string activeFunction = NONE;
+
 
     // This is a crappy way of handling return values, but I am hamstringed by the design for now
     bool hasReturn = false;
@@ -95,18 +93,21 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             case 0:
             {
                 resultVal += srcVal;
+                //TODO
                 localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal += srcVal;
+                // TODO
                 localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
             {
                 resultVal = resultVal + srcVal;
+                // TODO
                 localEnv[lit.m_token.token()] = "";
                 break;
             }
@@ -138,12 +139,14 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
             case 0:
             {
                 resultVal *= srcVal;
+                // TODO
                 localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal *= srcVal;
+                // TODO
                 localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
@@ -159,6 +162,7 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
         }
     }
 
+    // TODO
     localEnv[target.m_token.token()] = variant(resultVal);
 
     return lookup(target.m_token.token());
@@ -171,6 +175,7 @@ variant Interpreter::doNegation(Literal& target)
     variant tgt = lookup(target.m_token.token());
     T tgtVal = boost::get<T>(tgt);
 
+    // TODO: probably a bug here
     localEnv[target.m_token.token()] = (-tgtVal);
 
     return lookup(target.m_token.token());
@@ -188,6 +193,7 @@ variant Interpreter::doReciprocal(Literal& target)
         case 0:
         case 1:
         {
+            // TODO
             localEnv[target.m_token.token()] = (1/tgtVal);
             break;
         }
@@ -261,6 +267,7 @@ void Interpreter::doAssignment(std::string& name, Literal& expression)
         }
     }
 
+    // TODO: this is probably a bug because it's going to copy the local environment out
     std::map<std::string, variant> localEnv = *m_environment.top();
     localEnv[name] = value;
 }
@@ -273,16 +280,24 @@ Interpreter::Interpreter() :
 
 void Interpreter::interpret(std::vector<std::shared_ptr<Statement>>& statements)
 {
+
     for (std::shared_ptr<Statement> s: statements)
     {
+        // This is a huge kludge.  But we don't actually visit the type until the statement is read.
+        ReturnStatement* prs = dynamic_cast<ReturnStatement*>(s.get());
+
         if (activeFunction != NONE)
         {
-            FoodieFunction function = *m_functions[activeFunction];
-            function.addStatement(s);
+            m_functions[activeFunction]->addStatement(s);
         }
         else
         {
             (*s).accept(*this);
+        }
+
+        if (prs != nullptr)
+        {
+            activeFunction = NONE;
         }
     }
 }
@@ -401,7 +416,9 @@ void Interpreter::visitReturnStatement(ReturnStatement &statement)
 {
     std::map<std::string, variant> localEnv = *m_environment.top();
 
-    if (localEnv.count(statement.m_name) != 0)
+    activeFunction = NONE;
+
+    if (statement.m_name != NONE && localEnv.count(statement.m_name) != 0)
     {
         hasReturn = true;
         returnValue = localEnv[statement.m_name];

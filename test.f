@@ -18,4 +18,5 @@ procedure
 make cooked_bacon using bacon.
 serve.
 
-make sandwiches
+make sandwiches.
+serve.

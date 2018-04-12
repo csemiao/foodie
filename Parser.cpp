@@ -206,7 +206,7 @@ std::shared_ptr<FunctionCallStatement> Parser::makeFunctionCall(std::vector<Toke
         {
             ss << t.token();
 
-            if ((*(it + 1)).type() != Token::FUNCTION_ARGS_START)
+            if ((*(it + 1)).type() != Token::FUNCTION_ARGS_START && (it + 1) != tokens.end())
             {
                 ss << " ";
             }
@@ -260,14 +260,21 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
 }
 
 std::shared_ptr<ReturnStatement> Parser::makeReturn(std::vector<Token> &tokens) {
-    if (tokens.size() != 2)
+    if (tokens.size() > 2)
     {
         std::string returnString = tokenVectorToString(tokens, 1, true);
         fatalPrintf("You can't serve more than one thing from a recipe: ", returnString.c_str());
     }
     else
     {
-        return std::make_shared<ReturnStatement>(tokens.at(1).token());
+        if (tokens.size() == 2)
+        {
+            return std::make_shared<ReturnStatement>(tokens.at(1).token());
+        }
+        else
+        {
+            return std::make_shared<ReturnStatement>("");
+        }
     }
 }
 

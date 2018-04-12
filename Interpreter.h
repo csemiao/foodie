@@ -17,6 +17,7 @@ class NegationVisitor;
 class ReciprocalVisitor;
 class Interpreter;
 
+#define NONE ""
 
 struct FoodieFunction
 {
@@ -47,6 +48,8 @@ public:
     variant evaluate(std::shared_ptr<Expression> expression);
 
 private:
+    std::string activeFunction = NONE;
+
     variant lookup(std::string key);
     void doPrint(variant& result, std::string name);
     void doAssignment(std::string& name, Literal& value);
