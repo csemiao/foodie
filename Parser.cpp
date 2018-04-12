@@ -4,6 +4,8 @@
 
 #include "utils/Logger.h"
 #include "utils/common.h"
+#include <string>
+#include <sstream>
 
 #include <vector>
 #include "Parser.h"
@@ -142,6 +144,10 @@ std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
             {
                 return makePrint(tokens);
             }
+            case Token::FUNCTION_CALL:
+            {
+                return makeFunctionCall(tokens);
+            }
             default:
             {
                 fatalPrintf("I don't know what do with this token type %d", tokens.at(0).type());
@@ -158,10 +164,11 @@ std::shared_ptr<FunctionDecStatement> Parser::makeFunctionDec(std::vector<Token>
     for (std::vector<Token>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
     {
         Token t = *it;
+        ss << t.token();
 
         if (it != tokens.end() - 1)
         {
-            ss << t.token() << " ";
+            ss <<  " ";
         }
     }
 
@@ -174,6 +181,41 @@ std::shared_ptr<FunctionArgStatement> Parser::makeFunctionArg(std::vector<Token>
     std::string argName = tokenVectorToString(tokens, 1, true);
     return make_shared<FunctionArgStatement>(argName);
 }
+
+std::shared_ptr<FunctionCallStatement> Parser::makeFunctionCall(std::vector<Token> &tokens) {
+    bool isName = true;
+
+    std::stringstream ss;
+    std::vector<std::string> args;
+
+    for (std::vector<Token>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
+    {
+        Token t = *it;
+
+        if (t.type() == Token::FUNCTION_ARGS_START)
+        {
+            isName = false;
+            continue;
+        }
+
+        if (isName)
+        {
+            ss << t.token();
+
+            if ((*(it + 1)).type() != Token::FUNCTION_ARGS_START)
+            {
+                ss << " ";
+            }
+        }
+        else
+        {
+            args.push_back(t.token());
+        }
+    }
+
+    return std::make_shared<FunctionCallStatement>(ss.str(), args);
+}
+
 
 std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& tokens)
 {
@@ -315,6 +357,7 @@ void Parser::parseError(std::vector<Token> tokens, std::string msg)
 
     dbPrintf("%s: %s", msg.c_str(), line.c_str());
 }
+
 
 
 

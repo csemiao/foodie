@@ -12,7 +12,6 @@ class Parser
 {
     public:
         Parser();
-        void reset();
         std::vector<std::shared_ptr<Statement>> parse(std::vector<Token>& tokens);
 
     private:
@@ -26,6 +25,7 @@ class Parser
         std::shared_ptr<PrintStatement> makePrint(std::vector<Token>& tokens);
         std::shared_ptr<AssignmentStatement> makeAssignment(std::vector<Token>& tokens);
         std::shared_ptr<FunctionArgStatement> makeFunctionArg(std::vector<Token>& tokens);
+        std::shared_ptr<FunctionCallStatement> makeFunctionCall(std::vector<Token>& tokens);
 
 
         void parseError(std::vector<Token> tokens, std::string msg);

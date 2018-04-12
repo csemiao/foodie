@@ -24,6 +24,7 @@ public:
         BRAND_ID,
         FUNCTION_CALL,
         FUNCTION_ARG,
+        FUNCTION_ARGS_START,
 
         // Numerical and Logical types
         INTEGER,

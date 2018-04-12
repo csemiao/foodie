@@ -6,6 +6,9 @@
 #include "utils/Logger.h"
 #include <boost/variant/get.hpp>
 #include <string>
+#include <map>
+#include <stack>
+#include <memory>
 
 #define NONE ""
 
@@ -34,6 +37,10 @@ namespace
     }
 
     std::string activeFunction = NONE;
+
+    // This is a crappy way of handling return values, but I am hamstringed by the design for now
+    bool hasReturn = false;
+    variant returnValue;
 }
 
 FoodieFunction::FoodieFunction(std::string name) :
@@ -61,15 +68,20 @@ void FoodieFunction::addArg(std::string arg)
     m_arity += 1;
 }
 
-void call()
+variant FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& interpreter)
 {
+    // Set up a new environment using our args
+    interpreter.m_environment.push(std::make_unique<std::map<std::string, variant>>(args));
+    interpreter.interpret(m_statements);
 
+    return returnValue;
 };
 
 
 template <class T>
 variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
 {
+    std::map<std::string, variant> localEnv = *m_environment.top();
     variant result = lookup(target.m_token.token());
     T resultVal = boost::get<T>(result);
 
@@ -83,19 +95,19 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             case 0:
             {
                 resultVal += srcVal;
-                m_variables[lit.m_token.token()] = 0;
+                localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal += srcVal;
-                m_variables[lit.m_token.token()] = 0.0f;
+                localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
             {
                 resultVal = resultVal + srcVal;
-                m_variables[lit.m_token.token()] = "";
+                localEnv[lit.m_token.token()] = "";
                 break;
             }
             default:
@@ -105,13 +117,14 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
         }
     }
 
-    m_variables[target.m_token.token()] = variant(resultVal);
+    localEnv[target.m_token.token()] = variant(resultVal);
     return lookup(target.m_token.token());
 }
 
 template<class T>
 variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& target)
 {
+    std::map<std::string, variant> localEnv = *m_environment.top();
     variant result = lookup(target.m_token.token());
     T resultVal = boost::get<T>(result);
 
@@ -125,13 +138,13 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
             case 0:
             {
                 resultVal *= srcVal;
-                m_variables[lit.m_token.token()] = 0;
+                localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal *= srcVal;
-                m_variables[lit.m_token.token()] = 0.0f;
+                localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
@@ -146,7 +159,7 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
         }
     }
 
-    m_variables[target.m_token.token()] = variant(resultVal);
+    localEnv[target.m_token.token()] = variant(resultVal);
 
     return lookup(target.m_token.token());
 }
@@ -154,10 +167,11 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
 template <class T>
 variant Interpreter::doNegation(Literal& target)
 {
+    std::map<std::string, variant> localEnv = *m_environment.top();
     variant tgt = lookup(target.m_token.token());
     T tgtVal = boost::get<T>(tgt);
 
-    m_variables[target.m_token.token()] = (-tgtVal);
+    localEnv[target.m_token.token()] = (-tgtVal);
 
     return lookup(target.m_token.token());
 }
@@ -165,6 +179,7 @@ variant Interpreter::doNegation(Literal& target)
 template <class T>
 variant Interpreter::doReciprocal(Literal& target)
 {
+    std::map<std::string, variant> localEnv = *m_environment.top();
     variant tgt = lookup(target.m_token.token());
     T tgtVal = boost::get<T>(tgt);
 
@@ -173,7 +188,7 @@ variant Interpreter::doReciprocal(Literal& target)
         case 0:
         case 1:
         {
-            m_variables[target.m_token.token()] = (1/tgtVal);
+            localEnv[target.m_token.token()] = (1/tgtVal);
             break;
         }
         case 2:
@@ -246,31 +261,38 @@ void Interpreter::doAssignment(std::string& name, Literal& expression)
         }
     }
 
-
-    m_variables[name] = value;
+    std::map<std::string, variant> localEnv = *m_environment.top();
+    localEnv[name] = value;
 }
 
 Interpreter::Interpreter() :
         StatementVisitor()
 {
-    //m_variables["eggs"] = variant(1.0f);           // TODO: debugging values
-    //m_variables["cinammon"] = variant(2.0f);
-    //m_variables["toast"] = variant(3.0f);
+    m_environment.push(std::make_unique<std::map<std::string, variant>>());
 }
 
 void Interpreter::interpret(std::vector<std::shared_ptr<Statement>>& statements)
 {
     for (std::shared_ptr<Statement> s: statements)
     {
-        (*s).accept(*this);
+        if (activeFunction != NONE)
+        {
+            FoodieFunction function = *m_functions[activeFunction];
+            function.addStatement(s);
+        }
+        else
+        {
+            (*s).accept(*this);
+        }
     }
 }
 
 variant Interpreter::lookup(std::string key)
 {
-    if (m_variables.count(key) == 1)
+    std::map<std::string, variant> localEnv = *m_environment.top();
+    if (localEnv.count(key) == 1)
     {
-        return m_variables.at(key);
+        return localEnv.at(key);
     }
     else
     {
@@ -299,7 +321,9 @@ void Interpreter::visitAssignmentStatement(AssignmentStatement& statement)
 {
     std::string name = statement.mp_name.get()->m_token.token();
 
-    if (m_variables.count(name) == 0)
+    std::map<std::string, variant> localEnv = *m_environment.top();
+
+    if (localEnv.count(name) == 0)
     {
         doAssignment(name, *statement.mp_expression);
     }
@@ -315,6 +339,7 @@ void Interpreter::visitFunctionDecStatement(FunctionDecStatement& statement)
     if (activeFunction == NONE && m_functions.count(statement.m_name) == 0)
     {
         m_functions[statement.m_name] = std::make_unique<FoodieFunction>(statement.m_name);
+        activeFunction = statement.m_name;
     }
     else if (activeFunction != NONE)
     {
@@ -335,21 +360,48 @@ void Interpreter::visitFunctionArgStatement(FunctionArgStatement& statement)
     }
     else
     {
-        fatalPrintf("You should make %s, instead of trying to use it as an ingredient", statement.m_name.c_str());
+        fatalPrintf("You need a recipe for \"%s\", before you can use it as an ingredient", statement.m_name.c_str());
     }
 }
 
-// TODO:  this one can be removed???
+void Interpreter::visitFunctionCallStatement(FunctionCallStatement &statement)
+{
+    if (m_functions.count(statement.m_name) == 0)
+    {
+        fatalPrintf("Couldn't find a recipe for \"%s\" to use", statement.m_name.c_str());
+    }
+
+    FoodieFunction function = *m_functions[statement.m_name];
+
+    if (function.m_arity != statement.m_args.size())
+    {
+        fatalPrintf("You don't have the right number of ingredients to make \"%s\"", statement.m_name.c_str());
+    }
+
+    // Use the function arguments as a starter environment
+    std::map<std::string, variant> funcArgs = getFunctionArgsFromEnvironment(statement.m_args);
+    // And call the function
+    function.call(funcArgs, *this);
+}
+
+std::map<std::string, variant> Interpreter::getFunctionArgsFromEnvironment(std::vector<std::string> args)
+{
+    std::map<std::string, variant> argsMap;
+
+    for (std::string s : args)
+    {
+        variant value = lookup(s);
+        argsMap[s] = value;
+    }
+
+    return argsMap;
+};
+
+
 variant Interpreter::evaluate(std::shared_ptr<Expression> expression)
 {
     return expression->evaluate(*this);
 }
-
-variant Interpreter::evaluate(Expression& expression)
-{
-    return expression.evaluate(*this);
-}
-
 
 /**
  * Expression Visitor
@@ -407,5 +459,6 @@ variant Interpreter::visitUnary(Unary& unary)
         }
     }
 }
+
 
 

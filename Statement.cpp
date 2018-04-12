@@ -81,6 +81,18 @@ void FunctionArgStatement::accept(StatementVisitor& visitor)
  *  FunctionEndStatement (ReturnStatement)
  */
 
-/*
+/**
  *  FunctionCallStatement
  */
+
+FunctionCallStatement::FunctionCallStatement(std::string name, std::vector<std::string> args) :
+    Statement(),
+    m_name(name),
+    m_args(args)
+{};
+
+void FunctionCallStatement::accept(StatementVisitor& visitor)
+{
+    visitor.visitFunctionCallStatement(*this);
+}
+

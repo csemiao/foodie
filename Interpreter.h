@@ -9,24 +9,27 @@
 #include "utils/logger.h"
 #include <boost/variant/variant.hpp>
 #include <map>
+#include <stack>
 
 using variant = boost::variant<int,float,std::string>;
 
 class NegationVisitor;
 class ReciprocalVisitor;
+class Interpreter;
 
 
 struct FoodieFunction
 {
     FoodieFunction(std::string name);
-    void call(std::vector<Literal> args);
 
     void addStatement(std::shared_ptr<Statement> statement);
     void addArg(std::string);
+    variant call(std::map<std::string, variant>& args, Interpreter& interpreter);
+
+    int m_arity;
 
 private:
     std::string m_name;
-    int m_arity;
     std::map<int, std::string> m_args;      // 0-indexed.
     std::vector<std::shared_ptr<Statement>> m_statements;
 };
@@ -34,6 +37,7 @@ private:
 
 class Interpreter : private StatementVisitor, private ExpressionVisitor
 {
+    friend class FoodieFunction;
     friend class NegationVisitor;
     friend class ReciprocalVisitor;
 
@@ -41,12 +45,12 @@ public:
     Interpreter();
     void interpret(std::vector<std::shared_ptr<Statement>>& statements);
     variant evaluate(std::shared_ptr<Expression> expression);
-    variant evaluate(Expression& expression);
 
 private:
     variant lookup(std::string key);
     void doPrint(variant& result, std::string name);
     void doAssignment(std::string& name, Literal& value);
+    std::map<std::string, variant> getFunctionArgsFromEnvironment(std::vector<std::string> args);
 
     template <class T>
     variant doAddition(std::vector<Literal>& sources, Literal& target);
@@ -57,7 +61,7 @@ private:
     template <class T>
     variant doReciprocal(Literal& target);
 
-    std::map<std::string, variant> m_variables;
+    std::stack<std::unique_ptr<std::map<std::string, variant>>> m_environment;
     std::map<std::string, std::unique_ptr<FoodieFunction>> m_functions;
 
 // For StatementVisitor
@@ -67,6 +71,7 @@ private:
     void visitAssignmentStatement(AssignmentStatement& statement);
     void visitFunctionDecStatement(FunctionDecStatement& statement);
     void visitFunctionArgStatement(FunctionArgStatement& statement);
+    void visitFunctionCallStatement(FunctionCallStatement& statement);
 
 // For ExpressionVisitor
 private:

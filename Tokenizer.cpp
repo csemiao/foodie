@@ -34,7 +34,8 @@ namespace
                     {"serve", Token::RETURN},
                     {"brand", Token::BRAND_ID},
                     {"make", Token::FUNCTION_CALL},
-                    {"prepared", Token::FUNCTION_ARG}
+                    {"prepared", Token::FUNCTION_ARG},
+                    {"using", Token::FUNCTION_ARGS_START},
 
             };
 
