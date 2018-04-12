@@ -33,6 +33,9 @@ namespace
                     {"instagram", Token::PRINT},
                     {"serve", Token::RETURN},
                     {"brand", Token::BRAND_ID},
+                    {"make", Token::FUNCTION_CALL},
+                    {"prepared", Token::FUNCTION_ARG}
+
             };
 
     map<string, TwoWordKeyWord> keywordsTwo =
@@ -252,7 +255,7 @@ Token Tokenizer::findWord()
     }
     else
     {
-        return Token(Token::UNKNOWN, word);
+        return Token(Token::WORD, word);
     }
 }
 

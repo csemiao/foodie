@@ -50,3 +50,37 @@ void AssignmentStatement::accept(StatementVisitor& visitor)
 {
     visitor.visitAssignmentStatement(*this);
 }
+
+/**
+ *  FunctionDecStatement
+ */
+FunctionDecStatement::FunctionDecStatement(std::string name) :
+    Statement(),
+    m_name(name)
+{};
+
+void FunctionDecStatement::accept(StatementVisitor& visitor)
+{
+    visitor.visitFunctionDecStatement(*this);
+}
+
+/**
+ *  FunctionArgStatement
+ */
+FunctionArgStatement::FunctionArgStatement(std::string name) :
+    Statement(),
+    m_name(name)
+{};
+
+void FunctionArgStatement::accept(StatementVisitor& visitor)
+{
+    visitor.visitFunctionArgStatement(*this);
+}
+
+/**
+ *  FunctionEndStatement (ReturnStatement)
+ */
+
+/*
+ *  FunctionCallStatement
+ */

@@ -15,6 +15,23 @@ using variant = boost::variant<int,float,std::string>;
 class NegationVisitor;
 class ReciprocalVisitor;
 
+
+struct FoodieFunction
+{
+    FoodieFunction(std::string name);
+    void call(std::vector<Literal> args);
+
+    void addStatement(std::shared_ptr<Statement> statement);
+    void addArg(std::string);
+
+private:
+    std::string m_name;
+    int m_arity;
+    std::map<int, std::string> m_args;      // 0-indexed.
+    std::vector<std::shared_ptr<Statement>> m_statements;
+};
+
+
 class Interpreter : private StatementVisitor, private ExpressionVisitor
 {
     friend class NegationVisitor;
@@ -29,7 +46,7 @@ public:
 private:
     variant lookup(std::string key);
     void doPrint(variant& result, std::string name);
-    variant createVariant(Expression& expression);
+    void doAssignment(std::string& name, Literal& value);
 
     template <class T>
     variant doAddition(std::vector<Literal>& sources, Literal& target);
@@ -40,15 +57,16 @@ private:
     template <class T>
     variant doReciprocal(Literal& target);
 
-    void doAssignment(std::string& name, Literal& value);
-
     std::map<std::string, variant> m_variables;
+    std::map<std::string, std::unique_ptr<FoodieFunction>> m_functions;
 
 // For StatementVisitor
 private:
     variant visitExpressionStatement(ExpressionStatement& statement);
     void visitPrintStatement(PrintStatement& statement);
     void visitAssignmentStatement(AssignmentStatement& statement);
+    void visitFunctionDecStatement(FunctionDecStatement& statement);
+    void visitFunctionArgStatement(FunctionArgStatement& statement);
 
 // For ExpressionVisitor
 private:

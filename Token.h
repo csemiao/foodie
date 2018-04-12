@@ -13,7 +13,7 @@ public:
     {
         // lexical sugar that's there just for natural language style
         DEFAULT = -1,
-        UNKNOWN,                // applies to string values
+        WORD,                // something that is not anything else.  most likely a string
 
         // Declaration types
         FUNCTION_DECLARATION,
@@ -22,11 +22,13 @@ public:
         PROCEDURE_START,
         TRANSFER_VALUE,
         BRAND_ID,
+        FUNCTION_CALL,
+        FUNCTION_ARG,
 
         // Numerical and Logical types
         INTEGER,
         FLOAT,
-        BOOLEAN,
+        // BOOLEAN,
 
         // Primitive Mathematical Operation
         ADD_SELF,
@@ -35,18 +37,18 @@ public:
         RECIPROCAL,
 
         // Boolean Operations
-        AND,
-        OR,
-        NOT,
-        EQUALS,
-        NOT_EQUALS,
+        // AND,
+        // OR,
+        // NOT,
+        // EQUALS,
+        // NOT_EQUALS,
 
         // Control flow
-        IF,
-        ELSEIF,
-        ELSE,
-        FOR,
-        WHILE,
+        // IF,
+        // ELSEIF,
+        // ELSE,
+        // FOR,
+        // WHILE,
 
         // Endings
         END_OF_STATEMENT,

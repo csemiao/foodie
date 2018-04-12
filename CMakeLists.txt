@@ -20,6 +20,6 @@ set(SOURCE_FILES
     Token.cpp
     Token.h
     Tokenizer.cpp
-    Tokenizer.h)
+    Tokenizer.h utils/common.h)
 
 add_executable(Chile_2 ${SOURCE_FILES})

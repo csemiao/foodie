@@ -3,6 +3,7 @@
 //
 
 #include "utils/Logger.h"
+#include "utils/common.h"
 
 #include <vector>
 #include "Parser.h"
@@ -55,6 +56,7 @@ vector<std::shared_ptr<Statement>> Parser::parse(vector<Token>& tokens)
     return statements;
 }
 
+// TODO:  Refactor to a switch based state??
 std::shared_ptr<Statement> Parser::nextStatement()
 {
     std::vector<Token> tokens;
@@ -62,7 +64,25 @@ std::shared_ptr<Statement> Parser::nextStatement()
 
     while (popToken(nextToken))
     {
-        if (nextToken.type() == Token::INGREDIENTS_START)
+        if (nextToken.type() == Token::FUNCTION_DECLARATION)
+        {
+            isIngredient = false;
+            isProcedure = false;
+
+            // Because I don't want to have a period in the recipe declaration,
+            // need to grab all the tokens which make up the function name at this point
+            tokens.push_back(nextToken);
+
+            Token ahead;
+            while (peekToken(ahead) && ahead.type() != Token::INGREDIENTS_START)
+            {
+                popToken(nextToken);
+                tokens.push_back(nextToken);
+            }
+
+            return makeStatement(tokens);
+        }
+        else if (nextToken.type() == Token::INGREDIENTS_START)
         {
             isIngredient = true;
             isProcedure = false;
@@ -83,16 +103,31 @@ std::shared_ptr<Statement> Parser::nextStatement()
     }
 }
 
+// TODO:  Refactor.  We can remove the ingredients flag and just check if it contains an assignment operator
 std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
 {
     if (isIngredient)
     {
-        return makeAssignment(tokens);
+        switch (tokens.at(0).type())
+        {
+            case Token::FUNCTION_ARG:
+            {
+                return makeFunctionArg(tokens);
+            }
+            default:
+            {
+                return makeAssignment(tokens);
+            }
+        }
     }
-    else if (isProcedure)
+    else // if (isProcedure)
     {
         switch (tokens.at(0).type())
         {
+            case Token::FUNCTION_DECLARATION:
+            {
+                return makeFunctionDec(tokens);
+            }
             case Token::ADD_SELF:
             case Token::MULTIPLY_SELF:
             {
@@ -107,8 +142,37 @@ std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
             {
                 return makePrint(tokens);
             }
+            default:
+            {
+                fatalPrintf("I don't know what do with this token type %d", tokens.at(0).type());
+            }
         }
     }
+}
+
+std::shared_ptr<FunctionDecStatement> Parser::makeFunctionDec(std::vector<Token>& tokens)
+{
+    std::stringstream ss;
+
+    // We'll say that function names can be multi-word.
+    for (std::vector<Token>::iterator it = tokens.begin() + 1; it != tokens.end(); ++it)
+    {
+        Token t = *it;
+
+        if (it != tokens.end() - 1)
+        {
+            ss << t.token() << " ";
+        }
+    }
+
+    return std::make_shared<FunctionDecStatement>(ss.str());
+}
+
+
+std::shared_ptr<FunctionArgStatement> Parser::makeFunctionArg(std::vector<Token>& tokens)
+{
+    std::string argName = tokenVectorToString(tokens, 1, true);
+    return make_shared<FunctionArgStatement>(argName);
 }
 
 std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& tokens)
@@ -126,7 +190,7 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
             std::shared_ptr<Literal> p_name = std::make_shared<Literal>(tokens.at(1));
             return make_shared<AssignmentStatement>(p_name, p_value);
         }
-        case Token::UNKNOWN:
+        case Token::WORD:
         {
             // TODO: check length = 4 (includes EOS)
             if (tokens.at(1).type() == Token::BRAND_ID)
@@ -137,7 +201,12 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
             else
             {
                 // TODO:  We need to know what brand type
+                break;
             }
+        }
+        default:
+        {
+            fatalPrintf("I don't know what do do with this primitive type %d", tokens.at(0).type());
         }
     }
     //the first token is the value
@@ -223,6 +292,16 @@ bool Parser::popToken(Token& outToken)
     return false;
 }
 
+bool Parser::peekToken(Token& outToken)
+{
+    if (!isAtEnd())
+    {
+        outToken = m_tokens.at(m_pos);
+        return true;
+    }
+    return false;
+}
+
 
 void Parser::parseError(std::vector<Token> tokens, std::string msg)
 {
@@ -236,5 +315,6 @@ void Parser::parseError(std::vector<Token> tokens, std::string msg)
 
     dbPrintf("%s: %s", msg.c_str(), line.c_str());
 }
+
 
 

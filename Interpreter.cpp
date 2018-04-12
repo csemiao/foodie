@@ -7,6 +7,8 @@
 #include <boost/variant/get.hpp>
 #include <string>
 
+#define NONE ""
+
 namespace
 {
     std::vector<std::string> lineEndings {"fantastic", "yummy", "scrumptious", "delicious", "like crap",
@@ -30,7 +32,40 @@ namespace
 
         return isAllSameTypeVec(literals) && target.type() == literals.at(0).type();
     }
+
+    std::string activeFunction = NONE;
 }
+
+FoodieFunction::FoodieFunction(std::string name) :
+    m_name(name),
+    m_arity(0)
+{};
+
+void FoodieFunction::addStatement(std::shared_ptr<Statement> statement)
+{
+    m_statements.push_back(statement);
+}
+
+void FoodieFunction::addArg(std::string arg)
+{
+    for (std::map<int, std::string>::iterator it = m_args.begin(); it != m_args.end(); ++it)
+    {
+        auto pair = *it;
+        if (pair.second == arg)
+        {
+            fatalPrintf("The food from the recipe for \"%s\" is already an ingredient", arg.c_str());
+        }
+    }
+
+    m_args[m_arity] = arg;
+    m_arity += 1;
+}
+
+void call()
+{
+
+};
+
 
 template <class T>
 variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
@@ -200,7 +235,7 @@ void Interpreter::doAssignment(std::string& name, Literal& expression)
             value = stof(expression.m_token.token());
             break;
         }
-        case Token::UNKNOWN:
+        case Token::WORD:
         {
             value = expression.m_token.token();
             break;
@@ -275,6 +310,35 @@ void Interpreter::visitAssignmentStatement(AssignmentStatement& statement)
     }
 }
 
+void Interpreter::visitFunctionDecStatement(FunctionDecStatement& statement)
+{
+    if (activeFunction == NONE && m_functions.count(statement.m_name) == 0)
+    {
+        m_functions[statement.m_name] = std::make_unique<FoodieFunction>(statement.m_name);
+    }
+    else if (activeFunction != NONE)
+    {
+        fatalPrintf("You can't put recipe \"%s\" inside recipe \"%s\", use a new cookbook page", statement.m_name.c_str(), activeFunction.c_str());
+    }
+    else if (m_functions.count(statement.m_name) != 0)
+    {
+        fatalPrintf("Your cookbook already has a recipe for \"%s\" in it", statement.m_name.c_str());
+    }
+}
+
+void Interpreter::visitFunctionArgStatement(FunctionArgStatement& statement)
+{
+    if (activeFunction != NONE)
+    {
+        FoodieFunction func = *m_functions[activeFunction];
+        func.addArg(statement.m_name);
+    }
+    else
+    {
+        fatalPrintf("You should make %s, instead of trying to use it as an ingredient", statement.m_name.c_str());
+    }
+}
+
 // TODO:  this one can be removed???
 variant Interpreter::evaluate(std::shared_ptr<Expression> expression)
 {
@@ -293,8 +357,6 @@ variant Interpreter::evaluate(Expression& expression)
 
 variant Interpreter::visitBinary(Binary& binary)
 {
-    //dbPrintf("I am visiting a binary expression %s", "");
-
     if (!isAllSameType(binary.m_source, binary.m_target))
     {
         dbPrintf("Invalid types specified: %s", "Refactor me into a better method");        // TODO: use boosty way instead
@@ -327,8 +389,6 @@ variant Interpreter::visitLiteral(Literal& literal)
 
 variant Interpreter::visitUnary(Unary& unary)
 {
-    //dbPrintf("I am visiting a unary expression %s", "");
-
     switch (unary.m_op.type())
     {
         case Token::NEGATION:
@@ -347,3 +407,5 @@ variant Interpreter::visitUnary(Unary& unary)
         }
     }
 }
+
+

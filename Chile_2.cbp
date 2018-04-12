@@ -133,6 +133,9 @@
 		<Unit filename="/Users/Chris/Desktop/Chile 2/utils/Logger.h">
 			<Option target="Chile_2"/>
 		</Unit>
+		<Unit filename="/Users/Chris/Desktop/Chile 2/utils/common.h">
+			<Option target="Chile_2"/>
+		</Unit>
 		<Unit filename="/Users/Chris/Desktop/Chile 2/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

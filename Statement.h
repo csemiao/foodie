@@ -9,6 +9,8 @@
 class ExpressionStatement;
 class PrintStatement;
 class AssignmentStatement;
+class FunctionDecStatement;
+class FunctionArgStatement;
 
 
 // Visitor
@@ -18,6 +20,8 @@ public:
     virtual variant visitExpressionStatement(ExpressionStatement& statement) = 0;
     virtual void visitPrintStatement(PrintStatement& statement) = 0;
     virtual void visitAssignmentStatement(AssignmentStatement& statement) = 0;
+    virtual void visitFunctionDecStatement(FunctionDecStatement& statement) = 0;
+    virtual void visitFunctionArgStatement(FunctionArgStatement& statement) = 0;
 };
 
 
@@ -26,6 +30,35 @@ class Statement {
 public:
     virtual ~Statement();
     virtual void accept(StatementVisitor& visitor) = 0;
+};
+
+class FunctionDecStatement : public Statement
+{
+public:
+    FunctionDecStatement(std::string name);
+    void accept(StatementVisitor& visitor);
+
+    std::string m_name;
+};
+
+class FunctionArgStatement : public Statement
+{
+public:
+    FunctionArgStatement(std::string name);
+    void accept(StatementVisitor& visitor);
+
+    std::string m_name;
+};
+
+class FunctionEndStatement : public Statement
+{
+
+};
+
+
+class FunctionCallStatement : public Statement
+{
+
 };
 
 // ExpressionStatement
