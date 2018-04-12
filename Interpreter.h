@@ -72,6 +72,7 @@ private:
     void visitFunctionDecStatement(FunctionDecStatement& statement);
     void visitFunctionArgStatement(FunctionArgStatement& statement);
     void visitFunctionCallStatement(FunctionCallStatement& statement);
+    void visitReturnStatement(ReturnStatement& statement);
 
 // For ExpressionVisitor
 private:

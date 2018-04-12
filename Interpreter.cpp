@@ -397,6 +397,20 @@ std::map<std::string, variant> Interpreter::getFunctionArgsFromEnvironment(std::
     return argsMap;
 };
 
+void Interpreter::visitReturnStatement(ReturnStatement &statement)
+{
+    std::map<std::string, variant> localEnv = *m_environment.top();
+
+    if (localEnv.count(statement.m_name) != 0)
+    {
+        hasReturn = true;
+        returnValue = localEnv[statement.m_name];
+    }
+    else
+    {
+        fatalPrintf ("You didn't have \"%s\", so you can't serve it", statement.m_name.c_str());
+    }
+}
 
 variant Interpreter::evaluate(std::shared_ptr<Expression> expression)
 {
@@ -459,6 +473,8 @@ variant Interpreter::visitUnary(Unary& unary)
         }
     }
 }
+
+
 
 
 

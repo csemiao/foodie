@@ -148,6 +148,10 @@ std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
             {
                 return makeFunctionCall(tokens);
             }
+            case Token::RETURN:
+            {
+                return makeReturn(tokens);
+            }
             default:
             {
                 fatalPrintf("I don't know what do with this token type %d", tokens.at(0).type());
@@ -255,6 +259,18 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
     //the second token is the name, except if it's brand, in which case make it
 }
 
+std::shared_ptr<ReturnStatement> Parser::makeReturn(std::vector<Token> &tokens) {
+    if (tokens.size() != 2)
+    {
+        std::string returnString = tokenVectorToString(tokens, 1, true);
+        fatalPrintf("You can't serve more than one thing from a recipe: ", returnString.c_str());
+    }
+    else
+    {
+        return std::make_shared<ReturnStatement>(tokens.at(1).token());
+    }
+}
+
 std::shared_ptr<PrintStatement> Parser::makePrint(std::vector<Token>& tokens)
 {
     //dbPrintf("Trying to make print statement using tokens %s", "");
@@ -357,6 +373,8 @@ void Parser::parseError(std::vector<Token> tokens, std::string msg)
 
     dbPrintf("%s: %s", msg.c_str(), line.c_str());
 }
+
+
 
 
 

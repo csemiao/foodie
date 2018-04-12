@@ -26,6 +26,7 @@ class Parser
         std::shared_ptr<AssignmentStatement> makeAssignment(std::vector<Token>& tokens);
         std::shared_ptr<FunctionArgStatement> makeFunctionArg(std::vector<Token>& tokens);
         std::shared_ptr<FunctionCallStatement> makeFunctionCall(std::vector<Token>& tokens);
+        std::shared_ptr<ReturnStatement> makeReturn(std::vector<Token>& tokens);
 
 
         void parseError(std::vector<Token> tokens, std::string msg);

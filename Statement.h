@@ -12,6 +12,7 @@ class AssignmentStatement;
 class FunctionDecStatement;
 class FunctionArgStatement;
 class FunctionCallStatement;
+class ReturnStatement;
 
 
 // Visitor
@@ -24,6 +25,7 @@ public:
     virtual void visitFunctionDecStatement(FunctionDecStatement& statement) = 0;
     virtual void visitFunctionArgStatement(FunctionArgStatement& statement) = 0;
     virtual void visitFunctionCallStatement(FunctionCallStatement& statement) = 0;
+    virtual void visitReturnStatement(ReturnStatement& statement) = 0;
 };
 
 
@@ -52,10 +54,13 @@ public:
     std::string m_name;
 };
 
-class FunctionEndStatement : public Statement
+class ReturnStatement : public Statement
 {
 public:
+    ReturnStatement(std::string name);
+    void accept(StatementVisitor& visitor);
 
+    std::string m_name;
 };
 
 
