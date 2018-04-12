@@ -94,21 +94,24 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             {
                 resultVal += srcVal;
                 //TODO
-                localEnv[lit.m_token.token()] = 0;
+                m_environment.top()->operator[](lit.m_token.token()) = 0;
+                //localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal += srcVal;
                 // TODO
-                localEnv[lit.m_token.token()] = 0.0f;
+                m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
+                //localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
             {
                 resultVal = resultVal + srcVal;
                 // TODO
-                localEnv[lit.m_token.token()] = "";
+                m_environment.top()->operator[](lit.m_token.token()) = "";
+                //localEnv[lit.m_token.token()] = "";
                 break;
             }
             default:
@@ -118,7 +121,9 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
         }
     }
 
-    localEnv[target.m_token.token()] = variant(resultVal);
+    // TODO
+    m_environment.top()->operator[](target.m_token.token()) = variant(resultVal);
+    // localEnv[target.m_token.token()] = variant(resultVal);
     return lookup(target.m_token.token());
 }
 
@@ -140,14 +145,16 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
             {
                 resultVal *= srcVal;
                 // TODO
-                localEnv[lit.m_token.token()] = 0;
+                m_environment.top()->operator[](lit.m_token.token()) = 0;
+                //localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal *= srcVal;
                 // TODO
-                localEnv[lit.m_token.token()] = 0.0f;
+                m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
+                //localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
@@ -162,8 +169,8 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
         }
     }
 
-    // TODO
-    localEnv[target.m_token.token()] = variant(resultVal);
+    m_environment.top()->operator[](target.m_token.token()) = variant(resultVal);
+    //localEnv[target.m_token.token()] = variant(resultVal);
 
     return lookup(target.m_token.token());
 }
@@ -175,8 +182,7 @@ variant Interpreter::doNegation(Literal& target)
     variant tgt = lookup(target.m_token.token());
     T tgtVal = boost::get<T>(tgt);
 
-    // TODO: probably a bug here
-    localEnv[target.m_token.token()] = (-tgtVal);
+    m_environment.top()->operator[](target.m_token.token()) = (-tgtVal);
 
     return lookup(target.m_token.token());
 }
@@ -193,8 +199,7 @@ variant Interpreter::doReciprocal(Literal& target)
         case 0:
         case 1:
         {
-            // TODO
-            localEnv[target.m_token.token()] = (1/tgtVal);
+            m_environment.top()->operator[](target.m_token.token()) = (1/tgtVal);
             break;
         }
         case 2:
@@ -267,9 +272,12 @@ void Interpreter::doAssignment(std::string& name, Literal& expression)
         }
     }
 
+
     // TODO: this is probably a bug because it's going to copy the local environment out
-    std::map<std::string, variant> localEnv = *m_environment.top();
-    localEnv[name] = value;
+    //std::map<std::string, variant> localEnv = *m_environment.top();
+    //localEnv[name] = value;
+
+    m_environment.top()->operator[](name) = value;
 }
 
 Interpreter::Interpreter() :
@@ -285,10 +293,20 @@ void Interpreter::interpret(std::vector<std::shared_ptr<Statement>>& statements)
     {
         // This is a huge kludge.  But we don't actually visit the type until the statement is read.
         ReturnStatement* prs = dynamic_cast<ReturnStatement*>(s.get());
+        FunctionArgStatement* fas = dynamic_cast<FunctionArgStatement*>(s.get());
 
+        // TODO: refactor.  this is turning into a whole mess of spaghetti.
+        // TODO: maybe make a first pass of everything and process functiondecs, functionargs first
         if (activeFunction != NONE)
         {
-            m_functions[activeFunction]->addStatement(s);
+            if (fas != nullptr)
+            {
+                (*s).accept(*this);
+            }
+            else
+            {
+                m_functions[activeFunction]->addStatement(s);
+            }
         }
         else
         {
@@ -341,6 +359,7 @@ void Interpreter::visitAssignmentStatement(AssignmentStatement& statement)
     if (localEnv.count(name) == 0)
     {
         doAssignment(name, *statement.mp_expression);
+        std::map<std::string, variant> localEnv2 = *m_environment.top();
     }
     else
     {
@@ -370,8 +389,7 @@ void Interpreter::visitFunctionArgStatement(FunctionArgStatement& statement)
 {
     if (activeFunction != NONE)
     {
-        FoodieFunction func = *m_functions[activeFunction];
-        func.addArg(statement.m_name);
+        m_functions[activeFunction]->addArg(statement.m_name);
     }
     else
     {
