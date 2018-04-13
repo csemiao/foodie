@@ -15,6 +15,9 @@ using variant = boost::variant<int,float,std::string>;
 
 class NegationVisitor;
 class ReciprocalVisitor;
+class AdditionVisitor;
+class MultiplicationVisitor;
+
 class Interpreter;
 
 #define NONE ""
@@ -25,7 +28,7 @@ struct FoodieFunction
 
     void addStatement(std::shared_ptr<Statement> statement);
     void addArg(std::string);
-    variant call(std::map<std::string, variant>& args, Interpreter& interpreter);
+    void call(std::map<std::string, variant>& args, Interpreter& interpreter);
 
     int m_arity;
 
@@ -41,6 +44,8 @@ class Interpreter : private StatementVisitor, private ExpressionVisitor
     friend class FoodieFunction;
     friend class NegationVisitor;
     friend class ReciprocalVisitor;
+    friend class AdditionVisitor;
+    friend class MultiplicationVisitor;
 
 public:
     Interpreter();
@@ -100,7 +105,7 @@ struct ReciprocalVisitor : public boost::static_visitor<variant>
 
     variant operator() (const std::string& operand)
     {
-        fatalPrintf("I'm printing from within a template %s", "yay");
+        fatalPrintf("%s is not supported for string types", "reciprocal");
     };
 
     Unary m_expression;
@@ -123,10 +128,49 @@ struct NegationVisitor : public boost::static_visitor<variant>
 
     variant operator() (const std::string& operand)
     {
-        fatalPrintf("I'm printing from within a template %s", "yay");
+        fatalPrintf("%s is not supported from string types", "negation");
     };
 
     Unary m_expression;
+    Interpreter& m_interpreter;
+};
+
+struct AdditionVisitor : public boost::static_visitor<variant>
+{
+    AdditionVisitor(Binary binary, Interpreter& interpreter) :
+            m_expression(binary),
+            m_interpreter(interpreter)
+    {};
+
+    template<class T>
+    variant operator() (const T& operand)
+    {
+        return m_interpreter.doAddition<T>(m_expression.m_source, m_expression.m_target);
+    }
+
+    Binary m_expression;
+    Interpreter& m_interpreter;
+};
+
+struct MultiplicationVisitor : public boost::static_visitor<variant>
+{
+    MultiplicationVisitor(Binary binary, Interpreter& interpreter) :
+            m_expression(binary),
+            m_interpreter(interpreter)
+    {};
+
+    template<class T>
+    variant operator() (const T& operand)
+    {
+        return m_interpreter.doMultiplication<T>(m_expression.m_source, m_expression.m_target);
+    }
+
+    variant operator() (const std::string& operand)
+    {
+        fatalPrintf("Multiplication is not supported for string types");
+    }
+
+    Binary m_expression;
     Interpreter& m_interpreter;
 };
 

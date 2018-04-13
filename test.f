@@ -1,22 +1,19 @@
-recipe for cooked_bacon
+recipe for cooked_bacon  
 
 ingredients
-prepared bacon.
+ prepared bacon.  
 
-procedure
-
-fold bacon.
+procedure  
+fold bacon. 
 serve bacon.
 
+   recipe for sandwiches
+  ingredients 
+1.0 bacon.  
 
-recipe for sandwiches
-
-ingredients
-1.0 bacon.
-
-procedure
+procedure 
 make cooked_bacon using bacon.
+ instagram bacon. 
 serve.
 
-make sandwiches.
-serve.
+  make sandwiches.

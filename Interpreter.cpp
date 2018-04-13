@@ -33,12 +33,6 @@ namespace
 
         return isAllSameTypeVec(literals) && target.type() == literals.at(0).type();
     }
-
-
-
-    // This is a crappy way of handling return values, but I am hamstringed by the design for now
-    bool hasReturn = false;
-    variant returnValue;
 }
 
 FoodieFunction::FoodieFunction(std::string name) :
@@ -66,13 +60,11 @@ void FoodieFunction::addArg(std::string arg)
     m_arity += 1;
 }
 
-variant FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& interpreter)
+void FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& interpreter)
 {
     // Set up a new environment using our args
     interpreter.m_environment.push(std::make_unique<std::map<std::string, variant>>(args));
     interpreter.interpret(m_statements);
-
-    return returnValue;
 };
 
 
@@ -93,25 +85,19 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             case 0:
             {
                 resultVal += srcVal;
-                //TODO
                 m_environment.top()->operator[](lit.m_token.token()) = 0;
-                //localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal += srcVal;
-                // TODO
                 m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
-                //localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
             {
                 resultVal = resultVal + srcVal;
-                // TODO
                 m_environment.top()->operator[](lit.m_token.token()) = "";
-                //localEnv[lit.m_token.token()] = "";
                 break;
             }
             default:
@@ -121,9 +107,7 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
         }
     }
 
-    // TODO
     m_environment.top()->operator[](target.m_token.token()) = variant(resultVal);
-    // localEnv[target.m_token.token()] = variant(resultVal);
     return lookup(target.m_token.token());
 }
 
@@ -144,17 +128,13 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
             case 0:
             {
                 resultVal *= srcVal;
-                // TODO
                 m_environment.top()->operator[](lit.m_token.token()) = 0;
-                //localEnv[lit.m_token.token()] = 0;
                 break;
             }
             case 1:
             {
                 resultVal *= srcVal;
-                // TODO
                 m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
-                //localEnv[lit.m_token.token()] = 0.0f;
                 break;
             }
             case 2:
@@ -170,7 +150,6 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
     }
 
     m_environment.top()->operator[](target.m_token.token()) = variant(resultVal);
-    //localEnv[target.m_token.token()] = variant(resultVal);
 
     return lookup(target.m_token.token());
 }
@@ -271,11 +250,6 @@ void Interpreter::doAssignment(std::string& name, Literal& expression)
             fatalPrintf("Unknown primitive type being assigned %s", expression.m_token.token().c_str());
         }
     }
-
-
-    // TODO: this is probably a bug because it's going to copy the local environment out
-    //std::map<std::string, variant> localEnv = *m_environment.top();
-    //localEnv[name] = value;
 
     m_environment.top()->operator[](name) = value;
 }
@@ -436,14 +410,30 @@ void Interpreter::visitReturnStatement(ReturnStatement &statement)
 
     activeFunction = NONE;
 
-    if (statement.m_name != NONE && localEnv.count(statement.m_name) != 0)
+    if (statement.m_name != NONE && localEnv.count(statement.m_name) == 0)
     {
-        hasReturn = true;
-        returnValue = localEnv[statement.m_name];
+        fatalPrintf ("You didn't have \"%s\", so you can't serve it", statement.m_name.c_str());
     }
     else
     {
-        fatalPrintf ("You didn't have \"%s\", so you can't serve it", statement.m_name.c_str());
+        bool hasReturn = false;
+        variant returnValue;
+
+        if (statement.m_name != NONE)
+        {
+            returnValue = localEnv[statement.m_name];
+            hasReturn = true;
+        }
+
+        if (m_environment.size() > 1)
+        {
+            // If we can, put the return value into the stack frame below
+            m_environment.pop();
+            if (hasReturn)
+            {
+                m_environment.top()->operator[](statement.m_name) = returnValue;
+            }
+        }
     }
 }
 
@@ -460,18 +450,21 @@ variant Interpreter::visitBinary(Binary& binary)
 {
     if (!isAllSameType(binary.m_source, binary.m_target))
     {
-        dbPrintf("Invalid types specified: %s", "Refactor me into a better method");        // TODO: use boosty way instead
+        dbPrintf("Invalid types specified: %s", "Refactor me into a better method");
     }
 
     switch (binary.m_op.type())
     {
         case Token::ADD_SELF:
         {
-            return Interpreter::doAddition<float>(binary.m_source, binary.m_target);                 // TODO: show why this sucks
+            AdditionVisitor visitor(binary, *this);
+            return boost::apply_visitor(visitor, lookup(binary.m_source.at(0).m_token.token()));
         }
         case Token::MULTIPLY_SELF:
         {
-            return Interpreter::doMultiplication<float>(binary.m_source, binary.m_target);           // TODO: show why this sucks
+            MultiplicationVisitor visitor(binary, *this);
+            return boost::apply_visitor(visitor, lookup(binary.m_source.at(0).m_token.token()));
+            // return Interpreter::doMultiplication<float>(binary.m_source, binary.m_target);
         }
         default:
         {
