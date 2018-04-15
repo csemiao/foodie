@@ -1,14 +1,5 @@
-//
-// Created by Chris on 2018-02-24.
-//
-
 #include "Interpreter.h"
-#include "utils/Logger.h"
 #include <boost/variant/get.hpp>
-#include <string>
-#include <map>
-#include <stack>
-#include <memory>
 
 namespace
 {
@@ -71,7 +62,6 @@ void FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& int
 template <class T>
 variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
 {
-    std::map<std::string, variant> localEnv = *m_environment.top();
     variant result = lookup(target.m_token.token());
     T resultVal = boost::get<T>(result);
 
@@ -83,15 +73,10 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
         switch (src.which())
         {
             case 0:
-            {
-                resultVal += srcVal;
-                m_environment.top()->operator[](lit.m_token.token()) = 0;
-                break;
-            }
             case 1:
             {
                 resultVal += srcVal;
-                m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
+                m_environment.top()->operator[](lit.m_token.token()) = (T)0;
                 break;
             }
             case 2:

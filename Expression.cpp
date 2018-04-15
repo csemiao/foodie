@@ -36,10 +36,11 @@ variant Literal::evaluate(ExpressionVisitor& visitor)
  * BINARY
  */
 
-Binary::Binary(std::vector<Literal> input, Token op, Literal assignTo) :
+Binary::Binary(std::vector<Literal> input, Token op, Token transferType, Literal assignTo) :
         Expression(),
         m_source(input),
         m_target(assignTo),
+        m_transferType(transferType),
         m_op(op)
 {};
 

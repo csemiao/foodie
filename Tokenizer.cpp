@@ -25,9 +25,9 @@ namespace
                     {"ingredients", Token::INGREDIENTS_START},
                     {"preparation", Token::PROCEDURE_START},
                     {"procedure", Token::PROCEDURE_START},
-                    {"to", Token::TRANSFER_VALUE},
-                    {"in", Token::TRANSFER_VALUE},
-                    {"with", Token::TRANSFER_VALUE},
+                    {"to", Token::TRANSFER_TO_VARIABLE},
+                    {"in", Token::TRANSFER_TO_VARIABLE},
+                    {"with", Token::TRANSFER_TO_VARIABLE},
                     {"add", Token::ADD_SELF},
                     {"mix", Token::MULTIPLY_SELF},
                     {"fold", Token::NEGATION},
@@ -44,7 +44,7 @@ namespace
     map<string, TwoWordKeyWord> keywordsTwo =
             {
                     {"recipe", {"for", Token::FUNCTION_DECLARATION}},
-                    {"to", {"make", Token::TRANSFER_VARIABLE}},
+                    {"to", {"make", Token::TRANSFER_AND_ASSIGN}},
             };
 
     // If a token is available from the keyword, create it and return true.  otherwise return false;

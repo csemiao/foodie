@@ -17,10 +17,10 @@ public:
 
         // Declaration types
         FUNCTION_DECLARATION,
-        TRANSFER_VARIABLE,
+        TRANSFER_AND_ASSIGN,
         INGREDIENTS_START,
         PROCEDURE_START,
-        TRANSFER_VALUE,
+        TRANSFER_TO_VARIABLE,
         BRAND_ID,
         FUNCTION_CALL,
         FUNCTION_ARG,

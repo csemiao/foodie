@@ -19,12 +19,12 @@ namespace
         {
             if (t.type() == type)
             {
-                break;
+                return index;
             }
             index++;
         }
 
-        return index;
+        return 0;
     }
 }
 
@@ -154,7 +154,7 @@ Statement* Parser::makeStatement(std::vector<Token>& tokens)
             }
             default:
             {
-                fatalPrintf("I don't know what do with this token type %d", tokens.at(0).type());
+                fatalPrintf("Parsing error on token %s", tokens.at(0).token().c_str());
             }
         }
     }
@@ -314,29 +314,37 @@ ExpressionStatement* Parser::makeUnary(std::vector<Token>& tokens)
 
 ExpressionStatement* Parser::makeBinary(std::vector<Token>& tokens)
 {
-    size_t pivot = findFirstTokenOfType(tokens, Token::TRANSFER_VALUE);
+    size_t assignPivot = (findFirstTokenOfType(tokens, Token::TRANSFER_AND_ASSIGN));
+    size_t transPivot = (findFirstTokenOfType(tokens, Token::TRANSFER_TO_VARIABLE));
 
-    // There should be exactly three tokens after the pivot token, if not then the statement is invalid.
-    if (pivot + 3 != tokens.size())
+    // Check if there is more than one non-zero pivot value.
+    if (assignPivot + transPivot != max(assignPivot, transPivot))
     {
-        parseError(tokens, "Invalid statement");
+        fatalPrintf("Invalid statement: \"%s\"", tokenVectorToString(tokens, 0 , true).c_str());
     }
-
-    Token op = tokens.at(0);
-
-    vector<Literal> sources;
-
-    for (int i = 1; i < pivot; i++)
+    else
     {
-        Token t = tokens.at(i);
-        sources.push_back(Literal(t));
+        size_t pivot = max(assignPivot, transPivot);
+
+        if (pivot + 2 != tokens.size()) {
+            fatalPrintf("Invalid statement: \"%s\"", tokenVectorToString(tokens, 0, true).c_str());
+        }
+
+        vector<Literal> sources;
+
+        for (int i = 1; i < pivot; i++) {
+            Token t = tokens.at(i);
+            sources.push_back(Literal(t));
+        }
+
+        Token op = std::move(tokens.at(0));
+        Token transferType = std::move(tokens.at(pivot));
+        Token target = std::move(tokens.at(pivot + 1));
+
+        std::shared_ptr<Binary> p_binary = std::make_shared<Binary>(sources, op, transferType, target);
+
+        return new ExpressionStatement(p_binary);
     }
-
-    Token target = tokens.at(pivot + 1);
-
-    std::shared_ptr<Binary> p_binary = std::make_shared<Binary>(sources, op, target);
-
-    return new ExpressionStatement(p_binary);
 }
 
 bool Parser::isAtEnd()

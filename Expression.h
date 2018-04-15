@@ -46,12 +46,13 @@ public:
 class Binary : public Expression
 {
 public:
-    Binary(std::vector<Literal> sources, Token op, Literal target);
+    Binary(std::vector<Literal> sources, Token op, Token transferType, Literal target);
     variant evaluate(ExpressionVisitor& visitor);
 
     std::vector<Literal> m_source;
     Literal m_target;
     const Token m_op;
+    const Token m_transferType;
 };
 
 class Unary : public Expression
