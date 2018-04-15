@@ -1,19 +1,11 @@
-recipe for cooked_bacon  
-
 ingredients
- prepared bacon.  
 
-procedure  
-fold bacon. 
-serve bacon.
+hello brand bacon.  
+world brand eggs.
 
-   recipe for sandwiches
-  ingredients 
-1.0 bacon.  
+procedure
 
-procedure 
-make cooked_bacon using bacon.
- instagram bacon. 
-serve.
+add bacon to eggs.
+instagram bacon.
+instagram eggs.
 
-  make sandwiches.

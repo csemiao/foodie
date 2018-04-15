@@ -246,7 +246,7 @@ AssignmentStatement* Parser::makeAssignment(std::vector<Token>& tokens)
             }
             else
             {
-                // TODO:  We need to know what brand type
+                // TODO:  Error We need to know what brand type
                 break;
             }
         }

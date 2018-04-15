@@ -1,3 +1,8 @@
 .idea/workspace.xml
 CMakeFiles/
 Chile_2
+.idea
+*.cbp
+cmake-build-debug
+cmake_install.cmake
+CMakeCache.txt
