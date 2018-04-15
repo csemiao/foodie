@@ -25,6 +25,15 @@ namespace
         return isAllSameTypeVec(literals) && target.type() == literals.at(0).type();
     }
 
+    variant makeZeroForVariant(variant v)
+    {
+        MakeZeroedVisitor zeroVisitor;
+        return boost::apply_visitor(zeroVisitor, v);
+    }
+
+    // These are used to track return values
+    bool hasReturn = false;
+    variant returnVal;
 }
 
 FoodieFunction::FoodieFunction(std::string name) :
@@ -57,6 +66,9 @@ void FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& int
     // Set up a new environment using our args
     interpreter.m_environment.push(std::make_unique<std::map<std::string, variant>>(args));
     interpreter.interpret(m_statements);
+
+    // Drop the environment when the function is finished being called.
+    interpreter.m_environment.pop();
 };
 
 
@@ -71,7 +83,7 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target, T
         }
         else
         {
-            m_environment.top()->operator[](target.m_token.token()) = T(0);
+            m_environment.top()->operator[](target.m_token.token()) = variant(T(0));
         }
     }
 
@@ -363,13 +375,19 @@ void Interpreter::visitFunctionCallStatement(FunctionCallStatement &statement)
         fatalPrintf("You don't have the right number of ingredients to make \"%s\"", statement.m_name.c_str());
     }
 
-    // Use the function arguments as a starter environment
-    std::map<std::string, variant> funcArgs = getFunctionArgsFromEnvironment(statement.m_args);
-    // And call the function
+    //The function will be responsible for creating it's own environment.
+    std::map<std::string, variant> funcArgs = popVariablesFromEnvironment(statement.m_args);
     function.call(funcArgs, *this);
+
+    if (hasReturn)
+    {
+        m_environment.top()->operator[](statement.m_name) = returnVal;
+    }
+
+    hasReturn = false;
 }
 
-std::map<std::string, variant> Interpreter::getFunctionArgsFromEnvironment(std::vector<std::string> args)
+std::map<std::string, variant> Interpreter::popVariablesFromEnvironment(std::vector<std::string> args)
 {
     std::map<std::string, variant> argsMap;
 
@@ -377,6 +395,9 @@ std::map<std::string, variant> Interpreter::getFunctionArgsFromEnvironment(std::
     {
         variant value = lookup(s);
         argsMap[s] = value;
+
+        variant zeroed = makeZeroForVariant(value);
+        m_environment.top()->operator[](s) = zeroed;
     }
 
     return argsMap;
@@ -386,31 +407,18 @@ void Interpreter::visitReturnStatement(ReturnStatement &statement)
 {
     std::map<std::string, variant> localEnv = *m_environment.top();
 
-    activeFunction = NONE;
+    // activeFunction = NONE;
 
     if (statement.m_name != NONE && localEnv.count(statement.m_name) == 0)
     {
-        fatalPrintf ("You didn't have \"%s\", so you can't serve it", statement.m_name.c_str());
+        fatalPrintf ("You don't have \"%s\", to serve", statement.m_name.c_str());
     }
     else
     {
-        bool hasReturn = false;
-        variant returnValue;
-
         if (statement.m_name != NONE)
         {
-            returnValue = localEnv[statement.m_name];
+            returnVal = localEnv[statement.m_name];
             hasReturn = true;
-        }
-
-        if (m_environment.size() > 1)
-        {
-            // If we can, put the return value into the stack frame below
-            m_environment.pop();
-            if (hasReturn)
-            {
-                m_environment.top()->operator[](statement.m_name) = returnValue;
-            }
         }
     }
 }
@@ -455,8 +463,6 @@ variant Interpreter::visitLiteral(Literal& literal)
     variant result = lookup(literal.m_token.token());
     return result;
 }
-
-
 
 variant Interpreter::visitUnary(Unary& unary)
 {

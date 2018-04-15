@@ -1,14 +1,21 @@
-ingredients
+recipe for cooked_bacon
 
-hello brand bacon.  
-world brand eggs.
-poopies brand toast.
+  ingredients
+ prepared bacon.  
 
 procedure
+  fold bacon.
+ serve bacon.   
 
-add eggs toast bacon to make blt.
+recipe for sandwiches
+
+  ingredients
+ 1.0 bacon.  
+
+procedure
+ make cooked_bacon using bacon.
+ instagram cooked_bacon.
 instagram bacon.
-instagram eggs.
-instagram toast.
-instagram blt.
-
+ serve. 
+ 
+make sandwiches.

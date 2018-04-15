@@ -11,7 +11,7 @@
 #include <map>
 #include <stack>
 
-using variant = boost::variant<int,float,std::string>;
+using variant = boost::variant<int, float, std::string>;
 
 class NegationVisitor;
 class ReciprocalVisitor;
@@ -58,7 +58,7 @@ private:
     variant lookup(std::string key);
     void doPrint(variant& result, std::string name);
     void doAssignment(std::string& name, Literal& value);
-    std::map<std::string, variant> getFunctionArgsFromEnvironment(std::vector<std::string> args);
+    std::map<std::string, variant>popVariablesFromEnvironment(std::vector<std::string> args);
 
     template <class T>
     variant doAddition(std::vector<Literal>& sources, Literal& target, Token::TokenType transferType);
@@ -172,6 +172,21 @@ struct MultiplicationVisitor : public boost::static_visitor<variant>
 
     Binary m_expression;
     Interpreter& m_interpreter;
+};
+
+
+struct MakeZeroedVisitor : public boost::static_visitor<variant>
+{
+    template<typename T>
+    variant operator() (const T& operand)
+    {
+        return variant((T)0);
+    }
+
+    variant operator()(const std::string& operand)
+    {
+        return variant("");
+    }
 };
 
 

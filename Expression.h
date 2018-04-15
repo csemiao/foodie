@@ -8,7 +8,7 @@
 #include <boost/variant/variant.hpp>
 #pragma once
 
-using variant = boost::variant<int,float,std::string>;
+using variant = boost::variant<int, float, std::string>;
 
 // Forward declares
 class Binary;
