@@ -24,6 +24,7 @@ namespace
 
         return isAllSameTypeVec(literals) && target.type() == literals.at(0).type();
     }
+
 }
 
 FoodieFunction::FoodieFunction(std::string name) :
@@ -60,8 +61,20 @@ void FoodieFunction::call(std::map<std::string, variant>& args, Interpreter& int
 
 
 template <class T>
-variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
+variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target, Token::TokenType transferType)
 {
+    if (transferType == Token::TRANSFER_AND_ASSIGN)
+    {
+        if (std::is_same<T, std::string>::value)
+        {
+            m_environment.top()->operator[](target.m_token.token()) = std::string("");
+        }
+        else
+        {
+            m_environment.top()->operator[](target.m_token.token()) = T(0);
+        }
+    }
+
     variant result = lookup(target.m_token.token());
     T resultVal = boost::get<T>(result);
 
@@ -82,7 +95,7 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             case 2:
             {
                 resultVal = resultVal + srcVal;     // This is intentional based on cooking semantics.
-                m_environment.top()->operator[](lit.m_token.token()) = "";
+                m_environment.top()->operator[](lit.m_token.token()) = std::string("");
                 break;
             }
             default:
@@ -97,9 +110,16 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
 }
 
 template<class T>
-variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& target)
+variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& target, Token::TokenType transferType)
 {
-    std::map<std::string, variant> localEnv = *m_environment.top();
+    if (transferType == Token::TRANSFER_AND_ASSIGN)
+    {
+        // TODO: check if the variable is already there...
+        // Note that the intent was for a * b * c to transfer into d.  If d is zero, then the whole
+        // expression will evaluate as zero.  Therefore, d has to be initialized to 1.
+        m_environment.top()->operator[](target.m_token.token()) = variant((T)1);
+    }
+
     variant result = lookup(target.m_token.token());
     T resultVal = boost::get<T>(result);
 

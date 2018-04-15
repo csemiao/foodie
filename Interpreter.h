@@ -61,9 +61,9 @@ private:
     std::map<std::string, variant> getFunctionArgsFromEnvironment(std::vector<std::string> args);
 
     template <class T>
-    variant doAddition(std::vector<Literal>& sources, Literal& target);
+    variant doAddition(std::vector<Literal>& sources, Literal& target, Token::TokenType transferType);
     template <class T>
-    variant doMultiplication(std::vector<Literal>& sources, Literal& target);
+    variant doMultiplication(std::vector<Literal>& sources, Literal& target, Token::TokenType transferType);
     template <class T>
     variant doNegation(Literal& target);
     template <class T>
@@ -145,7 +145,7 @@ struct AdditionVisitor : public boost::static_visitor<variant>
     template<class T>
     variant operator() (const T& operand)
     {
-        return m_interpreter.doAddition<T>(m_expression.m_source, m_expression.m_target);
+        return m_interpreter.doAddition<T>(m_expression.m_source, m_expression.m_target, m_expression.m_transferType);
     }
 
     Binary m_expression;
@@ -162,7 +162,7 @@ struct MultiplicationVisitor : public boost::static_visitor<variant>
     template<class T>
     variant operator() (const T& operand)
     {
-        return m_interpreter.doMultiplication<T>(m_expression.m_source, m_expression.m_target);
+        return m_interpreter.doMultiplication<T>(m_expression.m_source, m_expression.m_target, m_expression.m_transferType);
     }
 
     variant operator() (const std::string& operand)

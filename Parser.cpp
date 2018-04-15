@@ -338,7 +338,7 @@ ExpressionStatement* Parser::makeBinary(std::vector<Token>& tokens)
         }
 
         Token op = std::move(tokens.at(0));
-        Token transferType = std::move(tokens.at(pivot));
+        Token::TokenType transferType = std::move(tokens.at(pivot).type());
         Token target = std::move(tokens.at(pivot + 1));
 
         std::shared_ptr<Binary> p_binary = std::make_shared<Binary>(sources, op, transferType, target);
