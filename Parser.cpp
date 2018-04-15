@@ -4,16 +4,12 @@
 
 #include "utils/Logger.h"
 #include "utils/common.h"
-#include <string>
-#include <sstream>
 
-#include <vector>
 #include "Parser.h"
 
 namespace
 {
     bool isIngredient = false;
-    bool isProcedure = true;
 
     size_t findFirstTokenOfType(std::vector<Token>& tokens, Token::TokenType type)
     {
@@ -48,65 +44,69 @@ vector<std::shared_ptr<Statement>> Parser::parse(vector<Token>& tokens)
 {
     m_tokens = tokens;
     vector<std::shared_ptr<Statement>> statements;
+    std::shared_ptr<Statement> p_statement;
 
-    while (!isAtEnd())
+    while (!isAtEnd() && nextStatement(p_statement))
     {
-        std::shared_ptr<Statement> p_statement = nextStatement();
-        statements.push_back(p_statement);
+        statements.push_back(std::move(p_statement));
     }
 
     return statements;
 }
 
-// TODO:  Refactor to a switch based state??
-std::shared_ptr<Statement> Parser::nextStatement()
-{
+
+// TODO:  Consider refactoring this to a more switch based state.
+bool Parser::nextStatement(std::shared_ptr<Statement>& p_statement) {
     std::vector<Token> tokens;
     Token nextToken;
 
-    while (popToken(nextToken))
-    {
-        if (nextToken.type() == Token::FUNCTION_DECLARATION)
+    while (popToken(nextToken)) {
+        if (nextToken.type() == Token::END_OF_FILE)
         {
-            isIngredient = false;
-            isProcedure = false;
+            return false;
+        }
+        else if (nextToken.type() == Token::FUNCTION_DECLARATION) {
+            // There are no END_STATEMENT tokens in the recipe declarations due to thematic choice
+            // Since I have decided to allow multi-word function names at this step, we will
+            // have to grab the whole declaration at once.
+            //
+            // NOTE:: This was probably a dumb idea, since now I will have to check for multi-word
+            // tokens in function call lines.
 
-            // Because I don't want to have a period in the recipe declaration,
-            // need to grab all the tokens which make up the function name at this point
+            isIngredient = false;
+
             tokens.push_back(nextToken);
 
             Token ahead;
-            while (peekToken(ahead) && ahead.type() != Token::INGREDIENTS_START)
-            {
+            while (peekToken(ahead) && ahead.type() != Token::INGREDIENTS_START) {
                 popToken(nextToken);
                 tokens.push_back(nextToken);
             }
 
-            return makeStatement(tokens);
+            p_statement.reset(makeStatement(tokens));
+            return true;
         }
         else if (nextToken.type() == Token::INGREDIENTS_START)
         {
             isIngredient = true;
-            isProcedure = false;
             continue;
         }
         else if (nextToken.type() == Token::PROCEDURE_START)
         {
-            isProcedure = true;
             isIngredient = false;
             continue;
         }
         else if (nextToken.type() == Token::END_OF_STATEMENT)
         {
-            return makeStatement(tokens);
+            p_statement.reset(makeStatement(tokens));
+            return true;
         }
-
         tokens.push_back(nextToken);
     }
 }
 
 // TODO:  Refactor.  We can remove the ingredients flag and just check if it contains an assignment operator
-std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
+Statement* Parser::makeStatement(std::vector<Token>& tokens)
 {
     if (isIngredient)
     {
@@ -122,7 +122,7 @@ std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
             }
         }
     }
-    else // if (isProcedure)
+    else
     {
         switch (tokens.at(0).type())
         {
@@ -160,7 +160,7 @@ std::shared_ptr<Statement>Parser::makeStatement(std::vector<Token>& tokens)
     }
 }
 
-std::shared_ptr<FunctionDecStatement> Parser::makeFunctionDec(std::vector<Token>& tokens)
+FunctionDecStatement* Parser::makeFunctionDec(std::vector<Token>& tokens)
 {
     std::stringstream ss;
 
@@ -176,17 +176,17 @@ std::shared_ptr<FunctionDecStatement> Parser::makeFunctionDec(std::vector<Token>
         }
     }
 
-    return std::make_shared<FunctionDecStatement>(ss.str());
+    return new FunctionDecStatement(ss.str());
 }
 
 
-std::shared_ptr<FunctionArgStatement> Parser::makeFunctionArg(std::vector<Token>& tokens)
+FunctionArgStatement* Parser::makeFunctionArg(std::vector<Token>& tokens)
 {
     std::string argName = tokenVectorToString(tokens, 1, true);
-    return make_shared<FunctionArgStatement>(argName);
+    return new FunctionArgStatement(argName);
 }
 
-std::shared_ptr<FunctionCallStatement> Parser::makeFunctionCall(std::vector<Token> &tokens) {
+FunctionCallStatement* Parser::makeFunctionCall(std::vector<Token> &tokens) {
     bool isName = true;
 
     std::stringstream ss;
@@ -217,11 +217,11 @@ std::shared_ptr<FunctionCallStatement> Parser::makeFunctionCall(std::vector<Toke
         }
     }
 
-    return std::make_shared<FunctionCallStatement>(ss.str(), args);
+    return new FunctionCallStatement(ss.str(), args);
 }
 
 
-std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& tokens)
+AssignmentStatement* Parser::makeAssignment(std::vector<Token>& tokens)
 {
 
     Token value = tokens.at(0);
@@ -234,7 +234,7 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
         {
             // TODO: check length = 3 (includes EOS)
             std::shared_ptr<Literal> p_name = std::make_shared<Literal>(tokens.at(1));
-            return make_shared<AssignmentStatement>(p_name, p_value);
+            return new AssignmentStatement(p_name, p_value);
         }
         case Token::WORD:
         {
@@ -242,7 +242,7 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
             if (tokens.at(1).type() == Token::BRAND_ID)
             {
                 std::shared_ptr<Literal> p_name = std::make_shared<Literal>(tokens.at(2));
-                return make_shared<AssignmentStatement>(p_name, p_value);
+                return new AssignmentStatement(p_name, p_value);
             }
             else
             {
@@ -259,26 +259,27 @@ std::shared_ptr<AssignmentStatement> Parser::makeAssignment(std::vector<Token>& 
     //the second token is the name, except if it's brand, in which case make it
 }
 
-std::shared_ptr<ReturnStatement> Parser::makeReturn(std::vector<Token> &tokens) {
+ReturnStatement* Parser::makeReturn(std::vector<Token> &tokens) {
     if (tokens.size() > 2)
     {
         std::string returnString = tokenVectorToString(tokens, 1, true);
         fatalPrintf("You can't serve more than one thing from a recipe: ", returnString.c_str());
+        exit(0);
     }
     else
     {
         if (tokens.size() == 2)
         {
-            return std::make_shared<ReturnStatement>(tokens.at(1).token());
+            return new ReturnStatement(tokens.at(1).token());
         }
         else
         {
-            return std::make_shared<ReturnStatement>("");
+            return new ReturnStatement("");
         }
     }
 }
 
-std::shared_ptr<PrintStatement> Parser::makePrint(std::vector<Token>& tokens)
+PrintStatement* Parser::makePrint(std::vector<Token>& tokens)
 {
     //dbPrintf("Trying to make print statement using tokens %s", "");
     if (tokens.size() != 2)
@@ -292,12 +293,11 @@ std::shared_ptr<PrintStatement> Parser::makePrint(std::vector<Token>& tokens)
     }
 
     std::shared_ptr<Literal> literal = std::make_shared<Literal>(tokens.at(1));
-    return std::make_shared<PrintStatement>(literal);
+    return new PrintStatement(literal);
 }
 
-std::shared_ptr<ExpressionStatement> Parser::makeUnary(std::vector<Token>& tokens)
+ExpressionStatement* Parser::makeUnary(std::vector<Token>& tokens)
 {
-    //dbPrintf("Trying to make unary statement using tokens %s", "");
     if (tokens.size() != 2)
     {
         stringstream ss;
@@ -309,13 +309,11 @@ std::shared_ptr<ExpressionStatement> Parser::makeUnary(std::vector<Token>& token
     }
 
     std::shared_ptr<Unary> p_unary = std::make_shared<Unary>(tokens.at(1),tokens.at(0));
-    return std::make_shared<ExpressionStatement>(p_unary);
+    return new ExpressionStatement(p_unary);
 }
 
-std::shared_ptr<ExpressionStatement> Parser::makeBinary(std::vector<Token>& tokens)
+ExpressionStatement* Parser::makeBinary(std::vector<Token>& tokens)
 {
-    //dbPrintf("Trying to make a binary statement using tokens %s", "");
-
     size_t pivot = findFirstTokenOfType(tokens, Token::TRANSFER_VALUE);
 
     // There should be exactly three tokens after the pivot token, if not then the statement is invalid.
@@ -338,7 +336,7 @@ std::shared_ptr<ExpressionStatement> Parser::makeBinary(std::vector<Token>& toke
 
     std::shared_ptr<Binary> p_binary = std::make_shared<Binary>(sources, op, target);
 
-    return std::make_shared<ExpressionStatement>(p_binary);
+    return new ExpressionStatement(p_binary);
 }
 
 bool Parser::isAtEnd()

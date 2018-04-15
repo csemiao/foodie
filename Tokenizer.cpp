@@ -26,6 +26,8 @@ namespace
                     {"preparation", Token::PROCEDURE_START},
                     {"procedure", Token::PROCEDURE_START},
                     {"to", Token::TRANSFER_VALUE},
+                    {"in", Token::TRANSFER_VALUE},
+                    {"with", Token::TRANSFER_VALUE},
                     {"add", Token::ADD_SELF},
                     {"mix", Token::MULTIPLY_SELF},
                     {"fold", Token::NEGATION},

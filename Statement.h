@@ -99,8 +99,8 @@ class AssignmentStatement: public Statement
 {
 public:
     AssignmentStatement(std::shared_ptr<Literal> name, std::shared_ptr<Literal> expression);
-
     void accept(StatementVisitor& visitor);
+
     std::shared_ptr<Literal> mp_name;
     std::shared_ptr<Literal> mp_expression;
 };

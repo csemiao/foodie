@@ -16,17 +16,17 @@ class Parser
 
     private:
 
-        std::shared_ptr<Statement> nextStatement();
-        std::shared_ptr<Statement> makeStatement(std::vector<Token>& tokens);
+        bool nextStatement(std::shared_ptr<Statement>& p_statement);
+        Statement* makeStatement(std::vector<Token>& tokens);
 
-        std::shared_ptr<FunctionDecStatement> makeFunctionDec(std::vector<Token>& tokens);
-        std::shared_ptr<ExpressionStatement> makeBinary(std::vector<Token>& tokens);
-        std::shared_ptr<ExpressionStatement> makeUnary(std::vector<Token>& tokens);
-        std::shared_ptr<PrintStatement> makePrint(std::vector<Token>& tokens);
-        std::shared_ptr<AssignmentStatement> makeAssignment(std::vector<Token>& tokens);
-        std::shared_ptr<FunctionArgStatement> makeFunctionArg(std::vector<Token>& tokens);
-        std::shared_ptr<FunctionCallStatement> makeFunctionCall(std::vector<Token>& tokens);
-        std::shared_ptr<ReturnStatement> makeReturn(std::vector<Token>& tokens);
+        FunctionDecStatement* makeFunctionDec(std::vector<Token>& tokens);
+        ExpressionStatement* makeBinary(std::vector<Token>& tokens);
+        ExpressionStatement* makeUnary(std::vector<Token>& tokens);
+        PrintStatement* makePrint(std::vector<Token>& tokens);
+        AssignmentStatement* makeAssignment(std::vector<Token>& tokens);
+        FunctionArgStatement* makeFunctionArg(std::vector<Token>& tokens);
+        FunctionCallStatement* makeFunctionCall(std::vector<Token>& tokens);
+        ReturnStatement* makeReturn(std::vector<Token>& tokens);
 
 
         void parseError(std::vector<Token> tokens, std::string msg);

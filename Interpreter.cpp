@@ -96,7 +96,7 @@ variant Interpreter::doAddition(std::vector<Literal>& source, Literal& target)
             }
             case 2:
             {
-                resultVal = resultVal + srcVal;
+                resultVal = resultVal + srcVal;     // This is intentional based on cooking semantics.
                 m_environment.top()->operator[](lit.m_token.token()) = "";
                 break;
             }
@@ -122,31 +122,9 @@ variant Interpreter::doMultiplication(std::vector<Literal>& source, Literal& tar
     {
         variant src = lookup(lit.m_token.token());
         T srcVal = boost::get<T>(src);
+        resultVal *= srcVal;
 
-        switch (src.which())
-        {
-            case 0:
-            {
-                resultVal *= srcVal;
-                m_environment.top()->operator[](lit.m_token.token()) = 0;
-                break;
-            }
-            case 1:
-            {
-                resultVal *= srcVal;
-                m_environment.top()->operator[](lit.m_token.token()) = 0.0f;
-                break;
-            }
-            case 2:
-            {
-                fatalPrintf("operation * not supported for type");
-                break;
-            }
-            default:
-            {
-                fatalPrintf("operation * variant case not accounted for %d", src.which());
-            }
-        }
+        m_environment.top()->operator[](lit.m_token.token()) = (T)0;
     }
 
     m_environment.top()->operator[](target.m_token.token()) = variant(resultVal);
@@ -179,11 +157,6 @@ variant Interpreter::doReciprocal(Literal& target)
         case 1:
         {
             m_environment.top()->operator[](target.m_token.token()) = (1/tgtVal);
-            break;
-        }
-        case 2:
-        {
-            fatalPrintf("operation recip not supported for %s", target.m_token.token().c_str());
             break;
         }
         default:
@@ -464,7 +437,6 @@ variant Interpreter::visitBinary(Binary& binary)
         {
             MultiplicationVisitor visitor(binary, *this);
             return boost::apply_visitor(visitor, lookup(binary.m_source.at(0).m_token.token()));
-            // return Interpreter::doMultiplication<float>(binary.m_source, binary.m_target);
         }
         default:
         {
